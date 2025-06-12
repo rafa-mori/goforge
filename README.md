@@ -1,4 +1,6 @@
-# 🚀 GoForge: Automação, CLI Moderna e Estrutura Profissional para Módulos Go
+# 🚀 GoForge: Automation, Modern CLI & Professional Structure for Go Modules
+
+[🇧🇷 Read this documentation in Portuguese](docs/README.pt-BR.md)
 
 [![Build](https://github.com/faelmori/goforge/actions/workflows/release.yml/badge.svg)](https://github.com/faelmori/goforge/actions/workflows/release.yml)
 [![Checksum](https://github.com/faelmori/goforge/actions/workflows/checksum.yml/badge.svg)](https://github.com/faelmori/goforge/actions/workflows/checksum.yml)
@@ -6,15 +8,15 @@
 [![Go Version](https://img.shields.io/badge/go-%3E=1.20-blue)](go.mod)
 [![Releases](https://img.shields.io/github/v/release/faelmori/goforge?include_prereleases)](https://github.com/faelmori/goforge/releases)
 
-Se você já cansou de builds manuais, deploys complicados, versionamento confuso e quer uma CLI estilosa, fácil de estender e pronta para produção, o **GoForge** é pra você!
+If you’re tired of manual builds, complicated deploys, confusing versioning, and want a stylish, easy-to-extend, production-ready CLI, **GoForge** is for you!
 
 ---
 
-## 🌟 Exemplos Avançados
+## 🌟 Advanced Examples
 
-### 1. Estendendo a CLI com um novo comando
+### 1. Extending the CLI with a new command
 
-Crie um novo arquivo em `cmd/cli/hello.go`:
+Create a new file at `cmd/cli/hello.go`:
 
 ```go
 package cli
@@ -26,14 +28,14 @@ import (
 
 var HelloCmd = &cobra.Command{
     Use:   "hello",
-    Short: "Exemplo de comando customizado",
+    Short: "Custom command example",
     Run: func(cmd *cobra.Command, args []string) {
-        fmt.Println("Olá, mundo! Comando customizado funcionando!")
+        fmt.Println("Hello, world! Custom command working!")
     },
 }
 ```
 
-No `wrpr.go`, registre o comando:
+In `wrpr.go`, register the command:
 
 ```go
 // ...existing code...
@@ -43,13 +45,13 @@ rootCmd.AddCommand(cli.HelloCmd)
 
 ---
 
-### 2. Logger avançado com contexto extra
+### 2. Advanced logger with extra context
 
 ```go
 import gl "github.com/faelmori/goforge/logger"
 
-func exemploComContexto() {
-    gl.Log("warn", "Atenção! Algo pode estar errado.")
+func exampleWithContext() {
+    gl.Log("warn", "Warning! Something might be wrong.")
     gl.Log("debug", map[string]interface{}{
         "user": "rafael",
         "action": "login",
@@ -60,132 +62,132 @@ func exemploComContexto() {
 
 ---
 
-### 3. Usando como biblioteca Go
+### 3. Using as a Go library
 
 ```go
 import "github.com/faelmori/goforge"
 
 func main() {
-    var myModule goforge.GoForge = &MeuModulo{}
+    var myModule goforge.GoForge = &MyModule{}
     if myModule.Active() {
         _ = myModule.Execute()
     }
 }
 
-// Implemente a interface GoForge no seu módulo
+// Implement the GoForge interface in your module
 ```
 
 ---
 
-## ✨ O que é o GoForge?
+## ✨ What is GoForge?
 
-O GoForge é um template/projeto base para qualquer módulo Go moderno. Ele entrega:
+GoForge is a template/base project for any modern Go module. It delivers:
 
-- **Build multi-plataforma** (Linux, macOS, Windows) sem mexer no código
-- **Compactação UPX** automática para binários otimizados
-- **Publicação automática** no GitHub Releases
-- **Gerenciamento de dependências** unificado
-- **Checksum automático** para garantir integridade
-- **CLI customizada e estilizada** (cobra), pronta para ser estendida
-- **Arquitetura flexível**: use como biblioteca ou executável
-- **Versionamento automático**: CI/CD preenche e embeda a versão no binário
-- **Logger estruturado**: logging contextual, colorido, com níveis e rastreio de linha
+- **Multi-platform build** (Linux, macOS, Windows) with no code changes
+- **Automatic UPX compression** for optimized binaries
+- **Automatic publishing** to GitHub Releases
+- **Unified dependency management**
+- **Automatic checksum** to ensure binary integrity
+- **Custom, stylish CLI** (cobra), ready to extend
+- **Flexible architecture**: use as a library or executable
+- **Automatic versioning**: CI/CD fills and embeds the version in the binary
+- **Structured logger**: contextual, colored logging with levels and line tracing
 
-Tudo isso sem precisar alterar o código do seu módulo individualmente. O workflow é modular, dinâmico e se adapta ao ambiente!
+All this without changing your module’s code. The workflow is modular, dynamic, and adapts to any environment!
 
 ---
 
-## 🏗️ Estrutura do Projeto
+## 🏗️ Project Structure
 
 ```plain text
 ./
-├── .github/workflows/      # Workflows de CI/CD (release, checksum)
-├── article.go              # Interface GoForge para uso como lib
-├── cmd/                    # Entrypoint e comandos da CLI
-│   ├── cli/                # Utilitários e comandos de exemplo
-│   ├── main.go             # Main da aplicação CLI
-│   ├── usage.go            # Template de usage customizado
-│   └── wrpr.go             # Estrutura e registro de comandos
-├── go.mod                  # Dependências Go
-├── logger/                 # Logger global estruturado
-│   └── logger.go           # Logger contextual e colorido
-├── Makefile                # Entrypoint para build, test, lint, etc.
-├── support/                # Scripts auxiliares para build/install
-├── version/                # Versionamento automático
-│   ├── CLI_VERSION         # Preenchido pelo CI/CD
-│   └── semantic.go         # Utilitários de versionamento semântico
+├── .github/workflows/      # CI/CD workflows (release, checksum)
+├── article.go              # GoForge interface for library use
+├── cmd/                    # CLI entrypoint and commands
+│   ├── cli/                # Utilities and example commands
+│   ├── main.go             # CLI application main
+│   ├── usage.go            # Custom usage template
+│   └── wrpr.go             # Command structure and registration
+├── go.mod                  # Go dependencies
+├── logger/                 # Global structured logger
+│   └── logger.go           # Contextual, colored logger
+├── Makefile                # Entrypoint for build, test, lint, etc.
+├── support/                # Helper scripts for build/install
+├── version/                # Automatic versioning
+│   ├── CLI_VERSION         # Filled by CI/CD
+│   └── semantic.go         # Semantic versioning utilities
 ```
 
 ---
 
-## 💡 Por que usar?
+## 💡 Why use it?
 
-- **Zero dor de cabeça** com builds e deploys
-- **CLI pronta para produção** e fácil de customizar
-- **Logger poderoso**: debug, info, warn, error, success, tudo com contexto
-- **Versionamento automático**: nunca mais esqueça de atualizar a versão
-- **Fácil de estender**: adicione comandos, use como lib, plugue em outros projetos
+- **No headaches** with builds and deploys
+- **Production-ready CLI** that’s easy to customize
+- **Powerful logger**: debug, info, warn, error, success, all with context
+- **Automatic versioning**: never forget to update your version again
+- **Easy to extend**: add commands, use as a library, plug into other projects
 
 ---
 
-## 🚀 Como usar
+## 🚀 Getting Started
 
-### 1. Instale as dependências
+### 1. Install dependencies
 
 ```sh
 make install
 ```
 
-### 2. Build do projeto
+### 2. Build the project
 
 ```sh
 make build
 ```
 
-### 3. Rode a CLI
+### 3. Run the CLI
 
 ```sh
 ./goforge --help
 ```
 
-### 4. Adicione comandos customizados
+### 4. Add custom commands
 
-Crie arquivos em `cmd/cli/` e registre no `wrpr.go`.
+Create files in `cmd/cli/` and register them in `wrpr.go`.
 
 ---
 
-## 🛠️ Exemplo de uso do Logger
+## 🛠️ Logger usage example
 
 ```go
 import gl "github.com/faelmori/goforge/logger"
 
-gl.Log("info", "Mensagem informativa")
-gl.Log("error", "Algo deu errado!")
+gl.Log("info", "Informative message")
+gl.Log("error", "Something went wrong!")
 ```
 
-O logger já inclui contexto (linha, arquivo, função) automaticamente!
+The logger automatically includes context (line, file, function)!
 
 ---
 
-## 🔄 Versionamento automático
+## 🔄 Automatic versioning
 
-O arquivo `version/CLI_VERSION` é preenchido pelo CI/CD a cada release/tag. O comando `goforge version` mostra a versão atual e a última disponível no GitHub.
-
----
-
-## 🤝 Contribua
-
-Pull requests, issues e sugestões são super bem-vindos. Vamos evoluir juntos!
+The `version/CLI_VERSION` file is filled by CI/CD on every release/tag. The `goforge version` command shows the current and latest version from GitHub.
 
 ---
 
-## 📄 Licença
+## 🤝 Contribute
 
-MIT. Veja o arquivo LICENSE.
+Pull requests, issues, and suggestions are very welcome. Let’s evolve together!
 
 ---
 
-## 👤 Autor
+## 📄 License
+
+MIT. See the LICENSE file.
+
+---
+
+## 👤 Author
 
 Rafael Mori — [@faelmori](https://github.com/faelmori)
 
@@ -193,10 +195,10 @@ Rafael Mori — [@faelmori](https://github.com/faelmori)
 
 ## 🌐 Links
 
-- [Repositório no GitHub](https://github.com/faelmori/goforge)
-- [Exemplo de uso do logger](logger/logger.go)
-- [Workflows de CI/CD](.github/workflows/)
+- [GitHub Repository](https://github.com/faelmori/goforge)
+- [Logger usage example](logger/logger.go)
+- [CI/CD Workflows](.github/workflows/)
 
 ---
 
-> Feito com 💙 para a comunidade Go. Bora automatizar tudo!
+> Made with 💙 for the Go community. Let’s automate everything!

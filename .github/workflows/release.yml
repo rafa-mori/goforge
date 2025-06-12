@@ -72,22 +72,20 @@ jobs:
           MOD_NAME=$(awk '/^module /{print $2}' go.mod | awk -F'/' '{print $NF}')
           BIN_NAME="${MOD_NAME}_linux_amd64"
           echo "BIN_NAME=$BIN_NAME" >> $GITHUB_ENV
-          echo "::set-output name=BIN_NAME::$BIN_NAME"
 
       - name: Build
         run: |
+          MOD_NAME=$(awk '/^module /{print $2}' go.mod | awk -F'/' '{print $NF}')
+          BIN_NAME="${MOD_NAME}_linux_amd64"
           go build -ldflags "-s -w -X main.version=${GITHUB_REF#refs/tags/} -X main.commit=$(git rev-parse HEAD) -X main.date=$(date +%Y-%m-%d)" -trimpath -o "$BIN_NAME" "$(dirname $(grep -risn '^package main' $(realpath ./) | head -n1 | awk -F ':' '{print $1}'))"
 
       - name: Compress with UPX
         run: |
+          MOD_NAME=$(awk '/^module /{print $2}' go.mod | awk -F'/' '{print $NF}')
+          BIN_NAME="${MOD_NAME}_linux_amd64"
           upx "$BIN_NAME" --force-overwrite --lzma --no-progress --no-color -qqq
           tar -czvf "$BIN_NAME.tar.gz" "$BIN_NAME" --remove-files
           sha256sum "$BIN_NAME.tar.gz" > "$BIN_NAME.tar.gz.sha256"
-
-      - name: Configure git user
-        run: |
-          git config --global user.email "github-actions@github.com"
-          git config --global user.name "GitHub Actions"
 
       - name: Create GitHub Release
         id: create_release
@@ -106,8 +104,8 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: ${{ steps.set_bin_name.outputs.BIN_NAME }}.tar.gz
-          asset_name: ${{ steps.set_bin_name.outputs.BIN_NAME }}.tar.gz
+          asset_path: goforge_linux_amd64.tar.gz
+          asset_name: goforge_linux_amd64.tar.gz
           asset_content_type: application/gzip
 
       - name: Clean Go Build Cache

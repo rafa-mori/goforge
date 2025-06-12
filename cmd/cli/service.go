@@ -1,7 +1,7 @@
 package cli
 
 import (
-	gl "github.com/faelmori/article/logger"
+	gl "github.com/faelmori/goforge/logger"
 	"github.com/spf13/cobra"
 )
 
@@ -18,14 +18,14 @@ func startCommand() *cobra.Command {
 		Use: "start",
 		Annotations: GetDescriptions([]string{
 			"Start some command.",
-			"This command is used to start the ArticleMod service with the specified configuration.",
+			"This command is used to start the GoForge service with the specified configuration.",
 		}, false),
 		Run: func(cmd *cobra.Command, args []string) {
 			if debug {
 				gl.SetDebug(true)
 				gl.Log("debug", "Debug mode enabled")
 			}
-			gl.Log("success", "ArticleMod service started successfully")
+			gl.Log("success", "GoForge service started successfully")
 		},
 	}
 

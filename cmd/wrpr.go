@@ -1,48 +1,48 @@
 package main
 
 import (
-	cc "github.com/faelmori/article/cmd/cli"
-	gl "github.com/faelmori/article/logger"
-	vs "github.com/faelmori/article/version"
+	cc "github.com/faelmori/goforge/cmd/cli"
+	gl "github.com/faelmori/goforge/logger"
+	vs "github.com/faelmori/goforge/version"
 	"github.com/spf13/cobra"
 
 	"os"
 	"strings"
 )
 
-type ArticleMod struct {
+type GoForge struct {
 	parentCmdName string
 	printBanner   bool
 }
 
-func (m *ArticleMod) Alias() string {
+func (m *GoForge) Alias() string {
 	return ""
 }
-func (m *ArticleMod) ShortDescription() string {
-	return "ArticleMod is a minimalistic backend service with Go."
+func (m *GoForge) ShortDescription() string {
+	return "GoForge is a minimalistic backend service with Go."
 }
-func (m *ArticleMod) LongDescription() string {
-	return `ArticleMod: A minimalistic backend service with Go.`
+func (m *GoForge) LongDescription() string {
+	return `GoForge: A minimalistic backend service with Go.`
 }
-func (m *ArticleMod) Usage() string {
+func (m *GoForge) Usage() string {
 	return "article [command] [args]"
 }
-func (m *ArticleMod) Examples() []string {
+func (m *GoForge) Examples() []string {
 	return []string{"article some-command",
 		"article another-command --option value",
 		"article yet-another-command --flag"}
 }
-func (m *ArticleMod) Active() bool {
+func (m *GoForge) Active() bool {
 	return true
 }
-func (m *ArticleMod) Module() string {
+func (m *GoForge) Module() string {
 	return "article"
 }
-func (m *ArticleMod) Execute() error {
+func (m *GoForge) Execute() error {
 	return m.Command().Execute()
 }
-func (m *ArticleMod) Command() *cobra.Command {
-	gl.Log("debug", "Starting ArticleMod CLI...")
+func (m *GoForge) Command() *cobra.Command {
+	gl.Log("debug", "Starting GoForge CLI...")
 
 	var rtCmd = &cobra.Command{
 		Use:     m.Module(),
@@ -71,10 +71,10 @@ func (m *ArticleMod) Command() *cobra.Command {
 
 	return rtCmd
 }
-func (m *ArticleMod) SetParentCmdName(rtCmd string) {
+func (m *GoForge) SetParentCmdName(rtCmd string) {
 	m.parentCmdName = rtCmd
 }
-func (m *ArticleMod) concatenateExamples() string {
+func (m *GoForge) concatenateExamples() string {
 	examples := ""
 	rtCmd := m.parentCmdName
 	if rtCmd != "" {
@@ -85,13 +85,13 @@ func (m *ArticleMod) concatenateExamples() string {
 	}
 	return examples
 }
-func RegX() *ArticleMod {
+func RegX() *GoForge {
 	var printBannerV = os.Getenv("ARTICLE_PRINT_BANNER")
 	if printBannerV == "" {
 		printBannerV = "true"
 	}
 
-	return &ArticleMod{
+	return &GoForge{
 		printBanner: strings.ToLower(printBannerV) == "true",
 	}
 }

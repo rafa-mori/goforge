@@ -4,7 +4,7 @@ import (
 	"os"
 	"path/filepath"
 
-	gl "github.com/faelmori/article/logger"
+	gl "github.com/faelmori/goforge/logger"
 	l "github.com/faelmori/logz"
 
 	"github.com/spf13/cobra"
@@ -35,10 +35,11 @@ func init() {
 	}
 }
 
-var moduleAlias = "article"      // Default module alias, can be overridden by environment variable
-var moduleName = "articleModule" // Default module name, can be overridden by environment variable
+var moduleAlias = "GoForge" // Default module alias, can be overridden by environment variable
+var moduleName = "goforge"  // Default module name, can be overridden by environment variable
 
-const currentVersionFallback = "v1.0.1" // First version with the version file
+const currentVersionFallback = "v0.0.1"
+
 //go:embed CLI_VERSION
 var cliVersion string
 var projectOwner = "faelmori" // Default project owner, can be overridden by environment variable
@@ -230,16 +231,16 @@ func GetLatestVersionFromGit() string {
 
 	response, err := netClient.Get(gitUrlWithoutGit + "/releases/latest")
 	if err != nil {
-		gl.Log("error", "ErrorCtx fetching latest version: "+err.Error())
+		gl.Log("error", "Error fetching latest version: "+err.Error())
 		gl.Log("error", gitUrlWithoutGit+"/releases/latest")
 		return err.Error()
 	}
 
 	if response.StatusCode != 200 {
-		gl.Log("error", "ErrorCtx fetching latest version: "+response.Status)
+		gl.Log("error", "Error fetching latest version: "+response.Status)
 		gl.Log("error", "Url: "+gitUrlWithoutGit+"/releases/latest")
 		body, _ := io.ReadAll(response.Body)
-		return fmt.Sprintf("ErrorCtx: %s\nResponse: %s", response.Status, string(body))
+		return fmt.Sprintf("Error: %s\nResponse: %s", response.Status, string(body))
 	}
 
 	tag := strings.Split(response.Request.URL.Path, "/")

@@ -59,9 +59,12 @@ jobs:
         run: go mod tidy
 
       - name: Set version
+        id: set_version
         run: |
+          TAG=$(git describe --tags --abbrev=0)
           test -d "$(realpath ./)/version" || mkdir -p "$(realpath ./)/version"
-          echo -n $(git describe --tags --abbrev=0) > "$(realpath ./)/version/CLI_VERSION"
+          echo -n "$TAG" > "$(realpath ./)/version/CLI_VERSION"
+          echo "tag=$TAG" >> $GITHUB_OUTPUT
 
       - name: Set env for binary name
         id: set_bin_name
@@ -92,8 +95,8 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
-          tag_name: ${{ github.ref_name }}
-          release_name: Release ${{ github.ref_name }}
+          tag_name: ${{ steps.set_version.outputs.tag }}
+          release_name: Release ${{ steps.set_version.outputs.tag }}
           draft: false
           prerelease: false
 

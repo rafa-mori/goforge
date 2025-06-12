@@ -2,10 +2,8 @@ name: kubex_go_release
 
 on:
   push:
-    branches:
-      - main
     tags:
-      - "v*.*.*"
+      - "v*.*.*"  # Só será executado com push de tag: git push origin vX.Y.Z
   workflow_dispatch:
 
 permissions:
@@ -16,7 +14,7 @@ jobs:
   kubex_go_release:
     runs-on: ubuntu-latest
     steps:
-      - name: Install UPX
+      - name: Install UPX and dependencies
         run: |
           sudo apt-get update
           sudo apt-get install -y upx zip tar curl gzip
@@ -25,13 +23,12 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
         with:
-          fetch-depth: 0
+          fetch-depth: 0  # Garante acesso às tags
 
       - name: Cache Go
         uses: actions/cache@v3
         with:
           path: "${{ runner.tool_cache }}/go"
-          # key: ${{ runner.os }}-go-${{ hashFiles('go.mod') }}
           key: ${{ runner.os }}-go-${{ github.sha }}
           restore-keys: |
             ${{ runner.os }}-go-
@@ -50,7 +47,6 @@ jobs:
           path: |
             ~/.cache/go-build
             ${{ github.workspace }}/7go/pkg/mod
-          #key: ${{ runner.os }}-go-mod-${{ hashFiles('**/go.sum') }}
           key: ${{ runner.os }}-go-mod-${{ github.sha }}
           restore-keys: |
             ${{ runner.os }}-go-mod-
@@ -58,11 +54,14 @@ jobs:
       - name: Go Mod Tidy
         run: go mod tidy
 
+      - name: Debug GITHUB_REF
+        run: echo "GITHUB_REF=${GITHUB_REF}"
+
       - name: Set version
         id: set_version
         run: |
-          TAG=$(git describe --tags --abbrev=0)
-          test -d "$(realpath ./)/version" || mkdir -p "$(realpath ./)/version"
+          TAG="${GITHUB_REF#refs/tags/}"
+          mkdir -p "$(realpath ./)/version"
           echo -n "$TAG" > "$(realpath ./)/version/CLI_VERSION"
           echo "tag=$TAG" >> $GITHUB_OUTPUT
 
@@ -104,8 +103,8 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: goforge_linux_amd64.tar.gz
-          asset_name: goforge_linux_amd64.tar.gz
+          asset_path: ${{ env.BIN_NAME }}.tar.gz
+          asset_name: ${{ env.BIN_NAME }}.tar.gz
           asset_content_type: application/gzip
 
       - name: Clean Go Build Cache

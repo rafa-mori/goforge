@@ -5,7 +5,7 @@ on:
     branches:
       - main
     tags:
-      - v*
+      - "v*.*.*"
   workflow_dispatch:
 
 jobs:
@@ -66,21 +66,23 @@ jobs:
 
       - name: Compress with UPX
         run: |
-          upx "$(realpath ./)/$(basename $(realpath ./))" --force-overwrite --lzma --no-progress --no-color -qqq
-          tar -czvf "$(realpath ./)/$(basename $(realpath ./)).tar.gz" "$(realpath ./)/$(basename $(realpath ./))" --remove-files
-          sha256sum "$(realpath ./)/$(basename $(realpath ./)).tar.gz" > "$(realpath ./)/$(basename $(realpath ./)).tar.gz.sha256"
+          upx "$(realpath ./)/$(basename "$(realpath ./)")" --force-overwrite --lzma --no-progress --no-color -qqq
+          tar -czvf "$(realpath ./)/$(basename "$(realpath ./)").tar.gz" "$(realpath ./)/$(basename "$(realpath ./)")" --remove-files
+          sha256sum "$(realpath ./)/$(basename "$(realpath ./)").tar.gz" > "$(realpath ./)/$(basename "$(realpath ./)").tar.gz.sha256"
 
-      - name: Upload to GitHub Releases
+      # - name: Get version from CLI_VERSION
+      #   id: version
+      #   run: echo "tag=$(cat version/CLI_VERSION)" >> $GITHUB_OUTPUT
+
+      - name: GitHub Releases
         uses: softprops/action-gh-release@v1
+        if: startsWith(github.ref, 'refs/tags/')
         with:
           files: |
-            $(realpath ./)/$(basename $(realpath ./)).tar.gz
-            $(realpath ./)/$(basename $(realpath ./)).tar.gz.sha256
+            "$(realpath ./)/$(basename "$(realpath ./)").tar.gz"
+            "$(realpath ./)/$(basename "$(realpath ./)").tar.gz.sha256"
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          TAG: ${{ github.ref }}
-          TAG_NAME: ${{ github.ref_name }}
-          RELEASE_NAME: Release ${{ github.ref_name }}
 
       - name: Clean Go Build Cache
         run: go clean -cache -modcache -i -r

@@ -10,7 +10,7 @@ on:
 
 jobs:
   kubex_go_release:
-    if: github.actor == 'faelmori' && github.ref == 'refs/heads/main' && startsWith(github.ref, 'refs/tags/v')
+    # if: github.actor == 'faelmori' && github.ref == 'refs/heads/main' && startsWith(github.ref, 'refs/tags/v')
     runs-on: ubuntu-latest
     steps:
       - name: Install UPX
@@ -78,6 +78,9 @@ jobs:
             $(realpath ./)/$(basename $(realpath ./)).tar.gz.sha256
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          TAG: ${{ github.ref }}
+          TAG_NAME: ${{ github.ref_name }}
+          RELEASE_NAME: Release ${{ github.ref_name }}
 
       - name: Clean Go Build Cache
         run: go clean -cache -modcache -i -r

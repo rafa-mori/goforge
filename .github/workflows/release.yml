@@ -81,6 +81,11 @@ jobs:
           tar -czvf "$BIN_NAME.tar.gz" "$BIN_NAME" --remove-files
           sha256sum "$BIN_NAME.tar.gz" > "$BIN_NAME.tar.gz.sha256"
 
+      - name: Configure git user
+        run: |
+          git config --global user.email "github-actions@github.com"
+          git config --global user.name "GitHub Actions"
+
       - name: Create GitHub Release
         id: create_release
         uses: actions/create-release@v1

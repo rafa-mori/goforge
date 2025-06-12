@@ -1,7 +1,6 @@
 # 🚀 GoForge: Automação, CLI Moderna e Estrutura Profissional para Módulos Go
 
 [![Build](https://github.com/faelmori/goforge/actions/workflows/release.yml/badge.svg)](https://github.com/faelmori/goforge/actions/workflows/release.yml)
-[![Checksum](https://github.com/faelmori/goforge/actions/workflows/checksum.yml/badge.svg)](https://github.com/faelmori/goforge/actions/workflows/checksum.yml)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 [![Go Version](https://img.shields.io/badge/go-%3E=1.20-blue)](go.mod)
 [![Releases](https://img.shields.io/github/v/release/faelmori/goforge?include_prereleases)](https://github.com/faelmori/goforge/releases)

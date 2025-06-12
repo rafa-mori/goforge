@@ -10,7 +10,6 @@ on:
 
 jobs:
   kubex_go_release:
-    if: startsWith(github.ref, 'refs/tags/v') && github.event_name == 'push' && github.event.created == true
     runs-on: ubuntu-latest
     steps:
       - name: Install UPX
@@ -62,33 +61,38 @@ jobs:
 
       - name: Build
         run: |
-          go build -ldflags "-s -w -X main.version=${GITHUB_REF#refs/heads/} -X main.commit=$(git rev-parse HEAD) -X main.date=$(date +%Y-%m-%d)" -trimpath -o "$(realpath ./)/$(basename $(realpath ./))" "$(dirname $(grep -risn '^package main' $(realpath ./) | head -n1 | awk -F ':' '{print $1}'))"
+          MOD_NAME=$(awk '/^module /{print $2}' go.mod | awk -F'/' '{print $NF}')
+          BIN_NAME="${MOD_NAME}_linux_amd64"
+          go build -ldflags "-s -w -X main.version=${GITHUB_REF#refs/tags/} -X main.commit=$(git rev-parse HEAD) -X main.date=$(date +%Y-%m-%d)" -trimpath -o "$BIN_NAME" "$(dirname $(grep -risn '^package main' $(realpath ./) | head -n1 | awk -F ':' '{print $1}'))"
 
       - name: Compress with UPX
         run: |
-          upx "$(realpath ./)/$(basename "$(realpath ./)")" --force-overwrite --lzma --no-progress --no-color -qqq
-          tar -czvf "$(realpath ./)/$(basename "$(realpath ./)").tar.gz" "$(realpath ./)/$(basename "$(realpath ./)")" --remove-files
-          sha256sum "$(realpath ./)/$(basename "$(realpath ./)").tar.gz" > "$(realpath ./)/$(basename "$(realpath ./)").tar.gz.sha256"
+          MOD_NAME=$(awk '/^module /{print $2}' go.mod | awk -F'/' '{print $NF}')
+          BIN_NAME="${MOD_NAME}_linux_amd64"
+          upx "$BIN_NAME" --force-overwrite --lzma --no-progress --no-color -qqq
+          tar -czvf "$BIN_NAME.tar.gz" "$BIN_NAME" --remove-files
+          sha256sum "$BIN_NAME.tar.gz" > "$BIN_NAME.tar.gz.sha256"
 
-      - name: Tag the repository
-        id: tag
-        if: startsWith(github.ref, 'refs/tags/v') && github.event_name == 'push' && github.event.created == true
-        run: |
-          TAG=v$(date -Iseconds | sed 's/[T:\+]/-/g')
-          echo "$TAG"
-          echo "tag=$TAG" >> $GITHUB_OUTPUT
-          git tag -a $TAG -m "Published version $TAG" ${GITHUB_SHA}
-          git push origin $TAG
-
-      - name: GitHub Releases
-        uses: softprops/action-gh-release@v1
-        if: startsWith(github.ref, 'refs/tags/v') && github.event_name == 'push' && github.event.created == true
-        with:
-          files: |
-            "$(realpath ./)/$(basename "$(realpath ./)").tar.gz"
-            "$(realpath ./)/$(basename "$(realpath ./)").tar.gz.sha256"
+      - name: Create GitHub Release
+        id: create_release
+        uses: actions/create-release@v1
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tag_name: ${{ github.ref_name }}
+          release_name: Release ${{ github.ref_name }}
+          draft: false
+          prerelease: false
+
+      - name: Upload Release Asset
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: $(awk '/^module /{print $2}' go.mod | awk -F'/' '{print $NF}')_linux_amd64.tar.gz
+          asset_name: $(awk '/^module /{print $2}' go.mod | awk -F'/' '{print $NF}')_linux_amd64.tar.gz
+          asset_content_type: application/gzip
 
       - name: Clean Go Build Cache
         run: go clean -cache -modcache -i -r

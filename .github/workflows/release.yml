@@ -8,6 +8,10 @@ on:
       - "v*.*.*"
   workflow_dispatch:
 
+permissions:
+  contents: write
+  packages: write
+
 jobs:
   kubex_go_release:
     runs-on: ubuntu-latest

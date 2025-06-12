@@ -1,11 +1,15 @@
-# 🚀 GoForge: Automation, Modern CLI & Professional Structure for Go Modules
+![GoForge](docs/assets/top_banner_m_a.png)
 
-[🇧🇷 Read this documentation in Portuguese](docs/README.pt-BR.md)
+
 
 [![Build](https://github.com/faelmori/goforge/actions/workflows/release.yml/badge.svg)](https://github.com/faelmori/goforge/actions/workflows/release.yml)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 [![Go Version](https://img.shields.io/badge/go-%3E=1.20-blue)](go.mod)
 [![Releases](https://img.shields.io/github/v/release/faelmori/goforge?include_prereleases)](https://github.com/faelmori/goforge/releases)
+
+---
+
+[🇧🇷 Read this documentation in Portuguese](docs/README.pt-BR.md)
 
 If you’re tired of manual builds, complicated deploys, confusing versioning, and want a stylish, easy-to-extend, production-ready CLI, **GoForge** is for you!
 

@@ -1,9 +1,9 @@
 package main
 
 import (
-	cc "github.com/faelmori/goforge/cmd/cli"
-	gl "github.com/faelmori/goforge/logger"
-	vs "github.com/faelmori/goforge/version"
+	cc "github.com/rafa-mori/goforge/cmd/cli"
+	gl "github.com/rafa-mori/goforge/logger"
+	vs "github.com/rafa-mori/goforge/version"
 	"github.com/spf13/cobra"
 
 	"os"
@@ -86,7 +86,7 @@ func (m *GoForge) concatenateExamples() string {
 	return examples
 }
 func RegX() *GoForge {
-	var printBannerV = os.Getenv("ARTICLE_PRINT_BANNER")
+	var printBannerV = os.Getenv("GOFORGE_PRINT_BANNER")
 	if printBannerV == "" {
 		printBannerV = "true"
 	}

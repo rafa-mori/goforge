@@ -4,8 +4,8 @@ import (
 	"os"
 	"path/filepath"
 
-	gl "github.com/faelmori/goforge/logger"
-	l "github.com/faelmori/logz"
+	gl "github.com/rafa-mori/goforge/logger"
+	l "github.com/rafa-mori/logz"
 
 	"github.com/spf13/cobra"
 

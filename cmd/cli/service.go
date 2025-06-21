@@ -1,7 +1,7 @@
 package cli
 
 import (
-	gl "github.com/faelmori/goforge/logger"
+	gl "github.com/rafa-mori/goforge/logger"
 	"github.com/spf13/cobra"
 )
 

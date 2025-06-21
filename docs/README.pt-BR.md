@@ -1,9 +1,9 @@
 # 🚀 GoForge: Automação, CLI Moderna e Estrutura Profissional para Módulos Go
 
-[![Build](https://github.com/faelmori/goforge/actions/workflows/release.yml/badge.svg)](https://github.com/faelmori/goforge/actions/workflows/release.yml)
+[![Build](https://github.com/rafa-mori/goforge/actions/workflows/release.yml/badge.svg)](https://github.com/rafa-mori/goforge/actions/workflows/release.yml)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 [![Go Version](https://img.shields.io/badge/go-%3E=1.20-blue)](go.mod)
-[![Releases](https://img.shields.io/github/v/release/faelmori/goforge?include_prereleases)](https://github.com/faelmori/goforge/releases)
+[![Releases](https://img.shields.io/github/v/release/faelmori/goforge?include_prereleases)](https://github.com/rafa-mori/goforge/releases)
 
 Se você já cansou de builds manuais, deploys complicados, versionamento confuso e quer uma CLI estilosa, fácil de estender e pronta para produção, o **GoForge** é pra você!
 
@@ -45,7 +45,7 @@ rootCmd.AddCommand(cli.HelloCmd)
 ### 2. Logger avançado com contexto extra
 
 ```go
-import gl "github.com/faelmori/goforge/logger"
+import gl "github.com/rafa-mori/goforge/logger"
 
 func exemploComContexto() {
     gl.Log("warn", "Atenção! Algo pode estar errado.")
@@ -62,7 +62,7 @@ func exemploComContexto() {
 ### 3. Usando como biblioteca Go
 
 ```go
-import "github.com/faelmori/goforge"
+import "github.com/rafa-mori/goforge"
 
 func main() {
     var myModule goforge.GoForge = &MeuModulo{}
@@ -156,7 +156,7 @@ Crie arquivos em `cmd/cli/` e registre no `wrpr.go`.
 ## 🛠️ Exemplo de uso do Logger
 
 ```go
-import gl "github.com/faelmori/goforge/logger"
+import gl "github.com/rafa-mori/goforge/logger"
 
 gl.Log("info", "Mensagem informativa")
 gl.Log("error", "Algo deu errado!")
@@ -186,13 +186,13 @@ MIT. Veja o arquivo LICENSE.
 
 ## 👤 Autor
 
-Rafael Mori — [@faelmori](https://github.com/faelmori)
+Rafael Mori — [@faelmori](https://github.com/rafa-mori)
 
 ---
 
 ## 🌐 Links
 
-- [Repositório no GitHub](https://github.com/faelmori/goforge)
+- [Repositório no GitHub](https://github.com/rafa-mori/goforge)
 - [Exemplo de uso do logger](logger/logger.go)
 - [Workflows de CI/CD](.github/workflows/)
 

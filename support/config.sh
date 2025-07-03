@@ -10,7 +10,7 @@ IFS=$'\n\t'
 _ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 _APP_NAME="${APP_NAME:-$(basename "${_ROOT_DIR}")}"
 _PROJECT_NAME="$_APP_NAME"
-_OWNER="${OWNER:-faelmori}"
+_OWNER="${OWNER:-"rafa-mori"}"
 # Tenta ler a versão, ou define um fallback
 _VERSION=$(cat "$_ROOT_DIR/version/CLI_VERSION" 2>/dev/null || echo "v0.0.0")
 # Extrai a versão do Go do go.mod (certifique-se de que este arquivo exista na raiz)
@@ -54,4 +54,5 @@ _LOCAL_BIN="${HOME:-"~"}/.local/bin"
 _GLOBAL_BIN="/usr/local/bin"
 
 # Caso queira, defina o OWNER (use no get_release_url)
-_OWNER="faelmori"
+_OWNER="rafa-mori"
+

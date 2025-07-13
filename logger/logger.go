@@ -1,3 +1,4 @@
+// Package logger provides a logging utility for Go applications.
 package logger
 
 import (
@@ -184,5 +185,5 @@ func logging(lgr l.Logger, lType LogType, fullMessage string, ctxMessageMap map[
 	default:
 		lgr.InfoCtx(fullMessage, ctxMessageMap)
 	}
-	debugCtx = debug
+	//debugCtx = debug
 }

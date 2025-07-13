@@ -99,7 +99,7 @@ Tudo isso sem precisar alterar o código do seu módulo individualmente. O workf
 ```plain text
 ./
 ├── .github/workflows/      # Workflows de CI/CD (release, checksum)
-├── article.go              # Interface GoForge para uso como lib
+├── goforge.go              # Interface GoForge para uso como lib
 ├── cmd/                    # Entrypoint e comandos da CLI
 │   ├── cli/                # Utilitários e comandos de exemplo
 │   ├── main.go             # Main da aplicação CLI

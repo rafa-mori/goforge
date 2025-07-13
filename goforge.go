@@ -1,10 +1,11 @@
-package article
+// Package goforge provides the GoForge interface for goforge modules.
+package goforge
 
 import "github.com/spf13/cobra"
 
-// This file/package allows the article module to be used as a library.
+// This file/package allows the goforge module to be used as a library.
 // It defines the GoForge interface which can be implemented by any module
-// that wants to be part of the article ecosystem.
+// that wants to be part of the goforge ecosystem.
 
 type GoForge interface {
 	// Alias returns the alias for the command.

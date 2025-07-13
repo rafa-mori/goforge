@@ -12,7 +12,7 @@ Write **table-driven tests** with the standard `testing` package. For complex as
 
 Mock dependencies via interfaces — never via `globals` or side effects. Benchmark performance-sensitive functions. Keep tests fast and deterministic.
 
-Naming: `CamelCase` for exported, `camelCase` for internal. Avoid stutter in package names (e.g., `user.User` is wrong). 
+Naming: `CamelCase` for exported, `camelCase` for internal. Avoid stutter in package names (e.g., `user.User` is wrong).
 
 Functions must be small and cohesive. Return early. Nesting is a code smell. Handle errors explicitly. Don’t ignore them — even temporarily.
 

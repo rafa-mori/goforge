@@ -1,0 +1,20 @@
+./
+├── tests
+│   └── test_first.bats
+├── action_validation.sh
+├── build.sh
+├── composer.sh
+├── config.sh
+├── docs
+│   └── mkdocs.yml
+├── info.sh
+├── install_funcs.sh
+├── install.sh
+├── main.sh
+├── platform.sh
+├── pos.d
+│   └── post_build.sh
+├── pre.d
+│   └── pre_build.sh
+├── utils.sh
+└── validate.sh

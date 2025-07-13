@@ -2,8 +2,10 @@ name: kubex_go_release
 
 on:
   push:
+    branches:
+      - main  # Only runs on push to main branch
     tags:
-      - "v*.*.*"  # Só será executado com push de tag: git push origin vX.Y.Z
+      - "v*.*.*"  # Only runs on push of tag: git push origin vX.Y.Z
   workflow_dispatch:
 
 permissions:
@@ -23,7 +25,7 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
         with:
-          fetch-depth: 0  # Garante acesso às tags
+          fetch-depth: 0  # Fetch all history for accurate versioning
 
       - name: Cache Go
         uses: actions/cache@v3
@@ -71,6 +73,7 @@ jobs:
           MOD_NAME=$(awk '/^module /{print $2}' go.mod | awk -F'/' '{print $NF}')
           BIN_NAME="${MOD_NAME}_linux_amd64"
           echo "BIN_NAME=$BIN_NAME" >> $GITHUB_ENV
+          echo "bin_name=$BIN_NAME" >> $GITHUB_OUTPUT
 
       - name: Build
         run: |
@@ -103,8 +106,8 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: ${{ env.BIN_NAME }}.tar.gz
-          asset_name: ${{ env.BIN_NAME }}.tar.gz
+          asset_path: ${{ steps.set_bin_name.outputs.bin_name }}.tar.gz
+          asset_name: ${{ steps.set_bin_name.outputs.bin_name }}.tar.gz
           asset_content_type: application/gzip
 
       - name: Clean Go Build Cache

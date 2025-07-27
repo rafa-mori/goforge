@@ -1,0 +1,3142 @@
+/// PROJECT_INFO ///
+Project: goforge_lookatni
+Generated: 2025-07-13T08:12:54.447Z
+Total Files: 38
+Source: /projects/tests/goforge_lookatni
+
+/// .github/ISSUE_TEMPLATE/bug_report.md ///
+---
+name: Bug report
+about: Create a report to help us improve
+title: ''
+labels: ''
+assignees: ''
+
+---
+
+**Describe the bug**
+A clear and concise description of what the bug is.
+
+**To Reproduce**
+Steps to reproduce the behavior:
+
+1. Go to '...'
+2. Click on '....'
+3. Scroll down to '....'
+4. See error
+
+**Expected behavior**
+A clear and concise description of what you expected to happen.
+
+**Screenshots**
+If applicable, add screenshots to help explain your problem.
+
+**Desktop (please complete the following information):**
+
+- OS: [e.g. iOS]
+- Browser [e.g. chrome, safari]
+- Version [e.g. 22]
+
+**Smartphone (please complete the following information):**
+
+- Device: [e.g. iPhone6]
+- OS: [e.g. iOS8.1]
+- Browser [e.g. stock browser, safari]
+- Version [e.g. 22]
+
+**Additional context**
+Add any other context about the problem here.
+
+/// .github/ISSUE_TEMPLATE/feature_request.md ///
+---
+name: Feature request
+about: Suggest an idea for this project
+title: ''
+labels: ''
+assignees: ''
+
+---
+
+**Is your feature request related to a problem? Please describe.**
+A clear and concise description of what the problem is. Ex. I'm always frustrated when [...]
+
+**Describe the solution you'd like**
+A clear and concise description of what you want to happen.
+
+**Describe alternatives you've considered**
+A clear and concise description of any alternative solutions or features you've considered.
+
+**Additional context**
+Add any other context or screenshots about the feature request here.
+
+/// .github/copilot-instructions.md ///
+# GoForge AI Agent Instructions
+
+GoForge is a Go CLI template/framework for creating production-ready command-line applications with automatic versioning, multi-platform builds, and comprehensive logging.
+
+## Architecture Overview
+
+**Dual Interface Pattern**: GoForge functions both as a standalone CLI and as a library:
+- CLI mode: Entry via `cmd/main.go` → `RegX().Command().Execute()`
+- Library mode: Implement the `GoForge` interface in `goforge.go`
+
+**Core Components**:
+- `cmd/wrpr.go`: Main command wrapper implementing the GoForge interface
+- `cmd/cli/`: Command definitions and CLI utilities
+- `logger/`: Structured logging with context and colors using external `logz` package
+- `version/`: Automatic semantic versioning with GitHub integration
+
+## Key Patterns
+
+**Command Registration**: Add new commands in `cmd/cli/service.go` via `ServiceCmdList()`, then register in `wrpr.go`:
+```go
+rtCmd.AddCommand(cc.ServiceCmdList()...)
+```
+
+**Logger Usage**: Import as `gl "github.com/rafa-mori/goforge/logger"` and use structured logging:
+```go
+gl.Log("info", "message")
+gl.Log("debug", map[string]interface{}{"key": "value"})
+```
+
+**Banner System**: Random ASCII banners in `cmd/cli/common.go`, controlled by `GOFORGE_PRINT_BANNER` env var.
+
+## Build System
+
+**Primary Commands**:
+- `make build`: Builds binary via `support/install.sh build`
+- `make install`: Full installation via `support/install.sh install`
+
+**CI/CD Flow**: GitHub Actions in `.github/workflows/release.yml`:
+1. Builds for Linux/amd64 with ldflags injection
+2. UPX compression for size optimization
+3. Auto-publishes to GitHub Releases with checksums
+4. Version injected into `version/CLI_VERSION` file
+
+**Multi-platform**: Build script supports Linux, macOS, Windows with different architectures via `support/build.sh`.
+
+## Developer Conventions
+
+**File Organization**: Follow the established pattern:
+- `cmd/main.go`: CLI entry point
+- `cmd/cli/*.go`: Individual command implementations
+- `goforge.go`: Library interface definition
+- `support/`: Build and installation scripts
+
+**Coding Standards**: Follow `support/instructions/go.md` - table-driven tests, godoc comments, composition over inheritance, explicit error handling.
+
+**Environment Variables**:
+- `GOFORGE_PRINT_BANNER`: Controls banner display
+- `GITHUB_OWNER`: Overrides project owner for version checks
+- `MODULE_ALIAS`: Sets module alias for logging
+
+**Versioning**: The `version/` package handles automatic version detection from GitHub releases and git tags, with fallback to embedded version from CI/CD.
+
+## Integration Points
+
+- External logging via `github.com/rafa-mori/logz`
+- CLI framework via `github.com/spf13/cobra`
+- GitHub API for version checking and releases
+- UPX for binary compression in builds
+
+When adding features, maintain the dual CLI/library interface and ensure commands follow the established registration pattern.
+
+/// .github/dependabot.yml ///
+version: 2
+updates:
+  - package-ecosystem: "gomod"
+    directory: "/" 
+    schedule:
+      interval: "weekly"
+
+/// .github/pull_request_template.md ///
+# Pull Request
+
+## Description
+
+<!-- Please include a summary of the change and which issue is fixed. Also include relevant motivation and context. List any dependencies that are required for this change. -->
+
+Fixes #
+
+## Checklist
+
+Please check all items that apply before requesting a review:
+
+- [ ] My code follows the project’s coding style and guidelines
+- [ ] I have tested my changes locally
+- [ ] I have updated the documentation as needed
+- [ ] All new and existing tests passed
+- [ ] I have added necessary tests where applicable
+
+## Related Issue(s)
+
+<!-- List all issues this PR closes or is related to. Example: Closes #123, Related to #456 -->
+
+## Screenshots (if applicable)
+
+<!-- If your change affects the UI, please include screenshots here. Otherwise, you can remove this section. -->
+
+---
+
+**Before approving this PR, reviewers must verify:**
+
+- [ ] All checklist items are completed
+- [ ] Linked related issues are valid and referenced above
+
+/// .github/workflows/release.yml ///
+name: kubex_go_release
+
+on:
+  push:
+    branches:
+      - main  # Only runs on push to main branch
+    tags:
+      - "v*.*.*"  # Only runs on push of tag: git push origin vX.Y.Z
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  packages: write
+
+jobs:
+  kubex_go_release:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Install UPX and dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y upx zip tar curl gzip
+          sudo apt-get install -y "$(sudo apt-cache show 'libzmq[1-9]-dev' | grep '^Package: ' | uniq | head -n1 | awk '{print $2}')"
+
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0  # Fetch all history for accurate versioning
+
+      - name: Cache Go
+        uses: actions/cache@v3
+        with:
+          path: "${{ runner.tool_cache }}/go"
+          key: ${{ runner.os }}-go-${{ github.sha }}
+          restore-keys: |
+            ${{ runner.os }}-go-
+
+      - name: Install Go
+        run: |
+          export NON_INTERACTIVE=true
+          bash -c "$(curl -sSfL 'https://raw.githubusercontent.com/rafa-mori/gosetup/refs/heads/main/go.sh')" -s --version "$(grep '^go ' go.mod | awk '{print $2}')"
+
+      - name: Verify Go Installation
+        run: go version
+
+      - name: Cache Go Modules
+        uses: actions/cache@v3
+        with:
+          path: |
+            ~/.cache/go-build
+            ${{ github.workspace }}/7go/pkg/mod
+          key: ${{ runner.os }}-go-mod-${{ github.sha }}
+          restore-keys: |
+            ${{ runner.os }}-go-mod-
+
+      - name: Go Mod Tidy
+        run: go mod tidy
+
+      - name: Debug GITHUB_REF
+        run: echo "GITHUB_REF=${GITHUB_REF}"
+
+      - name: Set version
+        id: set_version
+        run: |
+          TAG="${GITHUB_REF#refs/tags/}"
+          mkdir -p "$(realpath ./)/version"
+          echo -n "$TAG" > "$(realpath ./)/version/CLI_VERSION"
+          echo "tag=$TAG" >> $GITHUB_OUTPUT
+
+      - name: Set env for binary name
+        id: set_bin_name
+        run: |
+          MOD_NAME=$(awk '/^module /{print $2}' go.mod | awk -F'/' '{print $NF}')
+          BIN_NAME="${MOD_NAME}_linux_amd64"
+          echo "BIN_NAME=$BIN_NAME" >> $GITHUB_ENV
+          echo "bin_name=$BIN_NAME" >> $GITHUB_OUTPUT
+
+      - name: Build
+        run: |
+          MOD_NAME=$(awk '/^module /{print $2}' go.mod | awk -F'/' '{print $NF}')
+          BIN_NAME="${MOD_NAME}_linux_amd64"
+          go build -ldflags "-s -w -X main.version=${GITHUB_REF#refs/tags/} -X main.commit=$(git rev-parse HEAD) -X main.date=$(date +%Y-%m-%d)" -trimpath -o "$BIN_NAME" "$(dirname $(grep -risn '^package main' $(realpath ./) | head -n1 | awk -F ':' '{print $1}'))"
+
+      - name: Compress with UPX
+        run: |
+          MOD_NAME=$(awk '/^module /{print $2}' go.mod | awk -F'/' '{print $NF}')
+          BIN_NAME="${MOD_NAME}_linux_amd64"
+          upx "$BIN_NAME" --force-overwrite --lzma --no-progress --no-color -qqq
+          tar -czvf "$BIN_NAME.tar.gz" "$BIN_NAME" --remove-files
+          sha256sum "$BIN_NAME.tar.gz" > "$BIN_NAME.tar.gz.sha256"
+
+      - name: Create GitHub Release
+        id: create_release
+        uses: actions/create-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tag_name: ${{ steps.set_version.outputs.tag }}
+          release_name: Release ${{ steps.set_version.outputs.tag }}
+          draft: false
+          prerelease: false
+
+      - name: Upload Release Asset
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: ${{ steps.set_bin_name.outputs.bin_name }}.tar.gz
+          asset_name: ${{ steps.set_bin_name.outputs.bin_name }}.tar.gz
+          asset_content_type: application/gzip
+
+      - name: Clean Go Build Cache
+        run: go clean -cache -modcache -i -r
+
+/// .gitignore ///
+# Binaries for programs and plugins
+*.exe
+*.exe~
+*.dll
+*.so
+*.dylib
+*.test
+*.out
+
+# Output of the go coverage tool
+*.coverprofile
+
+# Dependency directories (remove the comment below if you use Go modules)
+vendor/
+
+# Go workspace file
+go.work
+go.work.sum
+
+# IDE/editor files
+.vscode/
+.idea/
+*.swp
+
+# OS generated files
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+
+# Python virtual environments (if present)
+venv/
+__pycache__/
+*.pyc
+
+# Node modules (if using JS tooling)
+node_modules/
+.venv/
+venv/
+*_linux_amd64
+*_linux_amd64.*
+
+
+/// CODE_OF_CONDUCT.md ///
+# Contributor Covenant Code of Conduct
+
+## Our Pledge
+
+We as members, contributors, and leaders pledge to make participation in our
+community a harassment-free experience for everyone, regardless of age, body
+size, visible or invisible disability, ethnicity, sex characteristics, gender
+identity and expression, level of experience, education, socio-economic status,
+nationality, personal appearance, race, religion, or sexual identity
+and orientation.
+
+We pledge to act and interact in ways that contribute to an open, welcoming,
+diverse, inclusive, and healthy community.
+
+## Our Standards
+
+Examples of behavior that contributes to a positive environment for our
+community include:
+
+* Demonstrating empathy and kindness toward other people
+* Being respectful of differing opinions, viewpoints, and experiences
+* Giving and gracefully accepting constructive feedback
+* Accepting responsibility and apologizing to those affected by our mistakes,
+  and learning from the experience
+* Focusing on what is best not just for us as individuals, but for the
+  overall community
+
+Examples of unacceptable behavior include:
+
+* The use of sexualized language or imagery, and sexual attention or
+  advances of any kind
+* Trolling, insulting or derogatory comments, and personal or political attacks
+* Public or private harassment
+* Publishing others' private information, such as a physical or email
+  address, without their explicit permission
+* Other conduct which could reasonably be considered inappropriate in a
+  professional setting
+
+## Enforcement Responsibilities
+
+Community leaders are responsible for clarifying and enforcing our standards of
+acceptable behavior and will take appropriate and fair corrective action in
+response to any behavior that they deem inappropriate, threatening, offensive,
+or harmful.
+
+Community leaders have the right and responsibility to remove, edit, or reject
+comments, commits, code, wiki edits, issues, and other contributions that are
+not aligned to this Code of Conduct, and will communicate reasons for moderation
+decisions when appropriate.
+
+## Scope
+
+This Code of Conduct applies within all community spaces, and also applies when
+an individual is officially representing the community in public spaces.
+Examples of representing our community include using an official e-mail address,
+posting via an official social media account, or acting as an appointed
+representative at an online or offline event.
+
+## Enforcement
+
+Instances of abusive, harassing, or otherwise unacceptable behavior may be
+reported to the community leaders responsible for enforcement at
+discord.gg/CCBJsFHT.
+All complaints will be reviewed and investigated promptly and fairly.
+
+All community leaders are obligated to respect the privacy and security of the
+reporter of any incident.
+
+## Enforcement Guidelines
+
+Community leaders will follow these Community Impact Guidelines in determining
+the consequences for any action they deem in violation of this Code of Conduct:
+
+### 1. Correction
+
+**Community Impact**: Use of inappropriate language or other behavior deemed
+unprofessional or unwelcome in the community.
+
+**Consequence**: A private, written warning from community leaders, providing
+clarity around the nature of the violation and an explanation of why the
+behavior was inappropriate. A public apology may be requested.
+
+### 2. Warning
+
+**Community Impact**: A violation through a single incident or series
+of actions.
+
+**Consequence**: A warning with consequences for continued behavior. No
+interaction with the people involved, including unsolicited interaction with
+those enforcing the Code of Conduct, for a specified period of time. This
+includes avoiding interactions in community spaces as well as external channels
+like social media. Violating these terms may lead to a temporary or
+permanent ban.
+
+### 3. Temporary Ban
+
+**Community Impact**: A serious violation of community standards, including
+sustained inappropriate behavior.
+
+**Consequence**: A temporary ban from any sort of interaction or public
+communication with the community for a specified period of time. No public or
+private interaction with the people involved, including unsolicited interaction
+with those enforcing the Code of Conduct, is allowed during this period.
+Violating these terms may lead to a permanent ban.
+
+### 4. Permanent Ban
+
+**Community Impact**: Demonstrating a pattern of violation of community
+standards, including sustained inappropriate behavior,  harassment of an
+individual, or aggression toward or disparagement of classes of individuals.
+
+**Consequence**: A permanent ban from any sort of public interaction within
+the community.
+
+## Attribution
+
+This Code of Conduct is adapted from the [Contributor Covenant][homepage],
+version 2.0, available at
+<https://www.contributor-covenant.org/version/2/0/code_of_conduct.html>.
+
+Community Impact Guidelines were inspired by [Mozilla's code of conduct
+enforcement ladder](https://github.com/mozilla/diversity).
+
+[homepage]: https://www.contributor-covenant.org
+
+For answers to common questions about this code of conduct, see the FAQ at
+<https://www.contributor-covenant.org/faq>. Translations are available at
+<https://www.contributor-covenant.org/translations>.
+
+/// LICENSE ///
+# MIT License
+
+Copyright (c) 2025 Rafael Mori
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in
+all copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
+
+/// Makefile ///
+# Description: Makefile for building and installing a Go application
+# Author: Rafael Mori
+# Copyright (c) 2025 Rafael Mori
+# License: MIT License
+
+# This Makefile is used to build and install a Go application.
+# It provides commands for building the binary, installing it, cleaning up build artifacts,
+# and running tests. It also includes a help command to display usage information.
+# The Makefile uses color codes for logging messages and provides a consistent interface
+# for interacting with the application.
+
+# Define the application name and root directory
+APP_NAME := $(shell echo $(basename $(CURDIR)) | tr '[:upper:]' '[:lower:]')
+ROOT_DIR := $(dir $(abspath $(lastword $(MAKEFILE_LIST))))
+BINARY_NAME := $(ROOT_DIR)$(APP_NAME)
+CMD_DIR := $(ROOT_DIR)cmd
+
+# Define the color codes
+COLOR_GREEN := \033[32m
+COLOR_YELLOW := \033[33m
+COLOR_RED := \033[31m
+COLOR_BLUE := \033[34m
+COLOR_RESET := \033[0m
+
+# Logging Functions
+log = @printf "%b%s%b %s\n" "$(COLOR_BLUE)" "[LOG]" "$(COLOR_RESET)" "$(1)"
+log_info = @printf "%b%s%b %s\n" "$(COLOR_BLUE)" "[INFO]" "$(COLOR_RESET)" "$(1)"
+log_success = @printf "%b%s%b %s\n" "$(COLOR_GREEN)" "[SUCCESS]" "$(COLOR_RESET)" "$(1)"
+log_warning = @printf "%b%s%b %s\n" "$(COLOR_YELLOW)" "[WARNING]" "$(COLOR_RESET)" "$(1)"
+log_break = @printf "%b%s%b\n" "$(COLOR_BLUE)" "[INFO]" "$(COLOR_RESET)"
+log_error = @printf "%b%s%b %s\n" "$(COLOR_RED)" "[ERROR]" "$(COLOR_RESET)" "$(1)"
+
+ARGUMENTS := $(MAKECMDGOALS)
+INSTALL_SCRIPT=$(ROOT_DIR)support/install.sh
+CMD_STR := $(strip $(firstword $(ARGUMENTS)))
+ARGS := $(filter-out $(strip $(CMD_STR)), $(ARGUMENTS))
+
+# Build the binary using the install script.
+build:
+	$(call log_info, Building $(APP_NAME) binary)
+	$(call log_info, Args: $(ARGS))
+	@bash $(INSTALL_SCRIPT) build $(ARGS)
+	$(shell exit 0)
+
+# Install the binary and configure the environment.
+install:
+	$(call log_info, Installing $(APP_NAME) binary)
+	$(call log_info, Args: $(ARGS))
+	@bash $(INSTALL_SCRIPT) install $(ARGS)
+	$(shell exit 0)
+
+# Clean up build artifacts.
+clean:
+	$(call log_info, Cleaning up build artifacts)
+	$(call log_info, Args: $(ARGS))
+	@bash $(INSTALL_SCRIPT) clean $(ARGS)
+	$(shell exit 0)
+
+# Run tests.
+test:
+	$(call log_info, Running tests)
+	$(call log_info, Args: $(ARGS))
+	@bash $(INSTALL_SCRIPT) test $(ARGS)
+	$(shell exit 0)
+
+## Run dynamic commands with arguments calling the install script.
+%:
+	@:
+	$(call log_info, Running command: $(CMD_STR))
+	$(call log_info, Args: $(ARGS))
+	@bash $(INSTALL_SCRIPT) $(CMD_STR) $(ARGS)
+	$(shell exit 0)
+
+# Display help message.
+help:
+	$(call log, $(APP_NAME) Makefile)
+	$(call log_break)
+	$(call log, Usage:)
+	$(call log,   make [target] [ARGS='--custom-arg value'])
+	$(call log_break)
+	$(call log, Available targets:)
+	$(call log,   make build      - Build the binary using install script)
+	$(call log,   make install    - Install the binary and configure environment)
+	$(call log,   make clean      - Clean up build artifacts)
+	$(call log,   make test       - Run tests)
+	$(call log,   make help       - Display this help message)
+	$(call log_break)
+	$(call log, Usage with arguments:)
+	$(call log,   make install ARGS='--custom-arg value' - Pass custom arguments to the install script)
+	$(call log_break)
+	$(call log, Example:)
+	$(call log,   make install ARGS='--prefix /usr/local')
+	$(call log_break)
+	$(call log, $(APP_NAME) is a tool for managing Kubernetes resources)
+	$(call log_break)
+	$(call log, For more information, visit:)
+	$(call log, 'https://github.com/rafa-mori/'$(APP_NAME))
+	$(call log_break)
+	$(call log_success, End of help message)
+	$(shell exit 0)
+
+
+
+/// NOTICE.md ///
+# NOTICE
+
+This software is licensed under the MIT License. Below are additional notes on usage and attribution:
+
+## Attribution Requirement (Optional)
+
+- When distributing or using this software, please provide credit to the original author(s) in one or more of the following ways:
+- Retain the copyright notice: `Copyright (c) 2025 Rafael Mori`.
+- Include a link to the original project repository or website.
+
+## Acknowledgment
+
+This project was developed with the goal of enhancing usability and providing open access to its features.
+
+For further information about the license and terms of use, please refer to the `LICENSE` file included with this project.
+
+/// README.md ///
+# ![GoForge](docs/assets/top_banner_m_a.png)
+
+---
+
+[![Build](https://github.com/rafa-mori/goforge/actions/workflows/release.yml/badge.svg)](https://github.com/rafa-mori/goforge/actions/workflows/release.yml)
+[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
+[![Go Version](https://img.shields.io/badge/go-%3E=1.20-blue)](go.mod)
+[![Releases](https://img.shields.io/github/v/release/rafa-mori/goforge?include_prereleases)](https://github.com/rafa-mori/goforge/releases)
+
+---
+
+[🇧🇷 Read this documentation in Portuguese](docs/README.pt-BR.md)
+
+If you’re tired of manual builds, complicated deploys, confusing versioning, and want a stylish, easy-to-extend, production-ready CLI, **GoForge** is for you!
+
+---
+
+## 🌟 Advanced Examples
+
+### 1. Extending the CLI with a new command
+
+Create a new file at `cmd/cli/hello.go`:
+
+```go
+package cli
+
+import (
+    "fmt"
+    "github.com/spf13/cobra"
+)
+
+var HelloCmd = &cobra.Command{
+    Use:   "hello",
+    Short: "Custom command example",
+    Run: func(cmd *cobra.Command, args []string) {
+        fmt.Println("Hello, world! Custom command working!")
+    },
+}
+```
+
+In `wrpr.go`, register the command:
+
+```go
+// ...existing code...
+rootCmd.AddCommand(cli.HelloCmd)
+// ...existing code...
+```
+
+---
+
+### 2. Advanced logger with extra context
+
+```go
+import gl "github.com/rafa-mori/goforge/logger"
+
+func exampleWithContext() {
+    gl.Log("warn", "Warning! Something might be wrong.")
+    gl.Log("debug", map[string]interface{}{
+        "user": "rafael",
+        "action": "login",
+        "success": true,
+    })
+}
+```
+
+---
+
+### 3. Using as a Go library
+
+```go
+import "github.com/rafa-mori/goforge"
+
+func main() {
+    var myModule goforge.GoForge = &MyModule{}
+    if myModule.Active() {
+        _ = myModule.Execute()
+    }
+}
+
+// Implement the GoForge interface in your module
+```
+
+---
+
+## ✨ What is GoForge?
+
+GoForge is a template/base project for any modern Go module. It delivers:
+
+- **Multi-platform build** (Linux, macOS, Windows) with no code changes
+- **Automatic UPX compression** for optimized binaries
+- **Automatic publishing** to GitHub Releases
+- **Unified dependency management**
+- **Automatic checksum** to ensure binary integrity
+- **Custom, stylish CLI** (cobra), ready to extend
+- **Flexible architecture**: use as a library or executable
+- **Automatic versioning**: CI/CD fills and embeds the version in the binary
+- **Structured logger**: contextual, colored logging with levels and line tracing
+
+All this without changing your module’s code. The workflow is modular, dynamic, and adapts to any environment!
+
+---
+
+## 🏗️ Project Structure
+
+```plain text
+./
+├── .github/workflows/      # CI/CD workflows (release, checksum)
+├── goforge.go              # GoForge interface for library use
+├── cmd/                    # CLI entrypoint and commands
+│   ├── cli/                # Utilities and example commands
+│   ├── main.go             # CLI application main
+│   ├── usage.go            # Custom usage template
+│   └── wrpr.go             # Command structure and registration
+├── go.mod                  # Go dependencies
+├── logger/                 # Global structured logger
+│   └── logger.go           # Contextual, colored logger
+├── Makefile                # Entrypoint for build, test, lint, etc.
+├── support/                # Helper scripts for build/install
+├── version/                # Automatic versioning
+│   ├── CLI_VERSION         # Filled by CI/CD
+│   └── semantic.go         # Semantic versioning utilities
+```
+
+---
+
+## 💡 Why use it?
+
+- **No headaches** with builds and deploys
+- **Production-ready CLI** that’s easy to customize
+- **Powerful logger**: debug, info, warn, error, success, all with context
+- **Automatic versioning**: never forget to update your version again
+- **Easy to extend**: add commands, use as a library, plug into other projects
+
+---
+
+## 🚀 Getting Started
+
+### 1. Install dependencies
+
+```sh
+make install
+```
+
+### 2. Build the project
+
+```sh
+make build
+```
+
+### 3. Run the CLI
+
+```sh
+./goforge --help
+```
+
+### 4. Add custom commands
+
+Create files in `cmd/cli/` and register them in `wrpr.go`.
+
+---
+
+## 🛠️ Logger usage example
+
+```go
+import gl "github.com/rafa-mori/goforge/logger"
+
+gl.Log("info", "Informative message")
+gl.Log("error", "Something went wrong!")
+```
+
+The logger automatically includes context (line, file, function)!
+
+---
+
+## 🔄 Automatic versioning
+
+The `version/CLI_VERSION` file is filled by CI/CD on every release/tag. The `goforge version` command shows the current and latest version from GitHub.
+
+---
+
+## 🤝 Contribute
+
+Pull requests, issues, and suggestions are very welcome. Let’s evolve together!
+
+---
+
+## 📄 License
+
+MIT. See the LICENSE file.
+
+---
+
+## 👤 Author
+
+Rafael Mori — [@rafa-mori](https://github.com/rafa-mori)
+
+---
+
+## 🌐 Links
+
+- [GitHub Repository](https://github.com/rafa-mori/goforge)
+- [Logger usage example](logger/logger.go)
+- [CI/CD Workflows](.github/workflows/)
+
+---
+
+> Made with 💙 for the Go community. Let’s automate everything!
+
+/// SECURITY.md ///
+# Security Policy
+
+## Supported Versions
+
+The following table outlines which versions of GoForge currently receive security updates:
+
+| Version | Supported           |
+| ------- | ------------------- |
+| 5.1.x   | :white_check_mark:  |
+| 5.0.x   | :white_check_mark:  |
+| 4.0.x   | :white_check_mark:  |
+| < 4.0   | :x:                 |
+
+> **Note:** Only the latest minor versions in each major release are supported with security updates. Older versions do not receive fixes.
+
+## Reporting a Vulnerability
+
+If you discover a security vulnerability in GoForge:
+
+- **Do NOT disclose it publicly** or via any public forum (including Discord).
+- Please report it through one of these private channels:
+  - [GitHub Security Advisories](https://github.com/rafa-mori/goforge/security/advisories)
+  - Or email: [maintainer@example.com] (replace this with your actual security contact email)
+
+Include as much detail as possible, such as:
+
+- A description of the vulnerability.
+- Steps to reproduce or proof-of-concept.
+- The impact, if known.
+
+### What to Expect
+
+- **Acknowledgement:** We will acknowledge your report within **2 business days**.
+- **Status Updates:** You’ll receive updates at least every **7 days** until we resolve or close the report.
+- **Resolution:** We’ll work with you to verify and address the issue as quickly as possible.
+- **Credit:** With your permission, we’ll credit you in our release notes.
+
+## Community Support
+
+For general questions, help, or to join our community, visit our [Discord server](https://discord.gg/CCBJsFHT).
+
+> **Please do not report security issues via Discord.** Use the private channels listed above for vulnerability disclosures.
+
+---
+
+If you have questions about this policy, contact the maintainers through the channels above.
+
+/// cmd/cli/common.go ///
+// Package cli provides common functionality for command line interface applications.
+package cli
+
+import (
+	"math/rand"
+	"os"
+	"strings"
+)
+
+var banners = []string{
+	`
+  ______           ________                                     
+ /      \         |        \                                    
+|  ▓▓▓▓▓▓\ ______ | ▓▓▓▓▓▓▓▓ ______   ______   ______   ______  
+| ▓▓ __\▓▓/      \| ▓▓__    /      \ /      \ /      \ /      \ 
+| ▓▓|    \  ▓▓▓▓▓▓\ ▓▓  \  |  ▓▓▓▓▓▓\  ▓▓▓▓▓▓\  ▓▓▓▓▓▓\  ▓▓▓▓▓▓\
+| ▓▓ \▓▓▓▓ ▓▓  | ▓▓ ▓▓▓▓▓  | ▓▓  | ▓▓ ▓▓   \▓▓ ▓▓  | ▓▓ ▓▓    ▓▓
+| ▓▓__| ▓▓ ▓▓__/ ▓▓ ▓▓     | ▓▓__/ ▓▓ ▓▓     | ▓▓__| ▓▓ ▓▓▓▓▓▓▓▓
+ \▓▓    ▓▓\▓▓    ▓▓ ▓▓      \▓▓    ▓▓ ▓▓      \▓▓    ▓▓\▓▓     \
+  \▓▓▓▓▓▓  \▓▓▓▓▓▓ \▓▓       \▓▓▓▓▓▓ \▓▓      _\▓▓▓▓▓▓▓ \▓▓▓▓▓▓▓
+                                             |  \__| ▓▓         
+                                              \▓▓    ▓▓         
+                                               \▓▓▓▓▓▓          `,
+
+	// Here you can add more banners, they will be randomly selected at runtime on each execution
+	// ` SOME OTHER BANNER `,
+}
+
+func GetDescriptions(descriptionArg []string, _ bool) map[string]string {
+	var description, banner string
+	if descriptionArg != nil {
+		if strings.Contains(strings.Join(os.Args[0:], ""), "-h") {
+			description = descriptionArg[0]
+		} else {
+			description = descriptionArg[1]
+		}
+	} else {
+		description = ""
+	}
+	bannerRandLen := len(banners)
+	bannerRandIndex := rand.Intn(bannerRandLen)
+	banner = banners[bannerRandIndex]
+	return map[string]string{"banner": banner, "description": description}
+}
+
+/// cmd/cli/service.go ///
+package cli
+
+import (
+	gl "github.com/rafa-mori/goforge/logger"
+	"github.com/spf13/cobra"
+)
+
+func ServiceCmdList() []*cobra.Command {
+	return []*cobra.Command{
+		startCommand(),
+	}
+}
+
+func startCommand() *cobra.Command {
+	var debug bool
+
+	var startCmd = &cobra.Command{
+		Use: "start",
+		Annotations: GetDescriptions([]string{
+			"Start some command.",
+			"This command is used to start the GoForge service with the specified configuration.",
+		}, false),
+		Run: func(cmd *cobra.Command, args []string) {
+			if debug {
+				gl.SetDebug(true)
+				gl.Log("debug", "Debug mode enabled")
+			}
+			gl.Log("success", "GoForge service started successfully")
+		},
+	}
+
+	startCmd.Flags().BoolVarP(&debug, "debug", "d", false, "Enable debug mode")
+
+	return startCmd
+}
+
+/// cmd/main.go ///
+// Package main is the entry point for the GoForge CLI application.
+package main
+
+import (
+	gl "github.com/rafa-mori/goforge/logger"
+)
+
+// This file is the entry point for the GoForge CLI application.
+// It initializes the logger and starts the application by executing the main command.
+// It allows the application to be run as a standalone CLI tool.
+
+// main initializes the logger and creates a new GoBE instance.
+func main() {
+	if err := RegX().Command().Execute(); err != nil {
+		gl.Log("fatal", err.Error())
+	}
+}
+
+/// cmd/usage.go ///
+package main
+
+import (
+	"github.com/fatih/color"
+	"github.com/spf13/cobra"
+)
+
+// colorYellow, colorGreen, colorBlue, colorRed, and colorHelp are utility functions
+// that return a string formatted with the specified color using the fatih/color package.
+// These functions are used to colorize output in the CLI usage template.
+// They are registered as template functions in the CLI usage template to allow
+// coloring specific parts of the command usage output.
+func colorYellow(s string) string {
+	return color.New(color.FgYellow).SprintFunc()(s)
+}
+
+func colorGreen(s string) string {
+	return color.New(color.FgGreen).SprintFunc()(s)
+}
+
+func colorBlue(s string) string {
+	return color.New(color.FgBlue).SprintFunc()(s)
+}
+
+func colorRed(s string) string {
+	return color.New(color.FgRed).SprintFunc()(s)
+}
+
+func colorHelp(s string) string {
+	return color.New(color.FgCyan).SprintFunc()(s)
+}
+
+func hasServiceCommands(cmds []*cobra.Command) bool {
+	for _, cmd := range cmds {
+		if cmd.Annotations["service"] == "true" {
+			return true
+		}
+	}
+	return false
+}
+
+func hasModuleCommands(cmds []*cobra.Command) bool {
+	for _, cmd := range cmds {
+		if cmd.Annotations["service"] != "true" {
+			return true
+		}
+	}
+	return false
+}
+
+func setUsageDefinition(cmd *cobra.Command) {
+	cobra.AddTemplateFunc("colorYellow", colorYellow)
+	cobra.AddTemplateFunc("colorGreen", colorGreen)
+	cobra.AddTemplateFunc("colorRed", colorRed)
+	cobra.AddTemplateFunc("colorBlue", colorBlue)
+	cobra.AddTemplateFunc("colorHelp", colorHelp)
+	cobra.AddTemplateFunc("hasServiceCommands", hasServiceCommands)
+	cobra.AddTemplateFunc("hasModuleCommands", hasModuleCommands)
+
+	// Altera o template de uso do cobra
+	cmd.SetUsageTemplate(cliUsageTemplate)
+}
+
+var cliUsageTemplate = `{{- if index .Annotations "banner" }}{{colorBlue (index .Annotations "banner")}}{{end}}{{- if (index .Annotations "description") }}
+{{index .Annotations "description"}}
+{{- end }}
+
+{{colorYellow "Usage:"}}{{if .Runnable}}
+  {{.UseLine}}{{end}}{{if .HasAvailableSubCommands}}
+  {{.CommandPath}} [command] [args]{{end}}{{if gt (len .Aliases) 0}}
+
+{{colorYellow "Aliases:"}}
+  {{.NameAndAliases}}{{end}}{{if .HasExample}}
+
+{{colorYellow "Example:"}}
+  {{.Example}}{{end}}{{if .HasAvailableSubCommands}}
+{{colorYellow "Available Commands:"}}{{range .Commands}}{{if (or .IsAvailableCommand (eq .Name "help"))}}
+  {{colorGreen (rpad .Name .NamePadding) }} {{.Short}}{{end}}{{end}}{{end}}{{if .HasAvailableLocalFlags}}
+
+{{colorYellow "Flags:"}}
+{{.LocalFlags.FlagUsages | trimTrailingWhitespaces | colorHelp}}{{end}}{{if .HasAvailableInheritedFlags}}
+
+{{colorYellow "Global Options:"}}
+  {{.InheritedFlags.FlagUsages | trimTrailingWhitespaces | colorHelp}}{{end}}{{if .HasHelpSubCommands}}
+
+{{colorYellow "Additional help topics:"}}
+{{range .Commands}}{{if .IsHelpCommand}}
+  {{colorGreen (rpad .CommandPath .CommandPathPadding) }} {{.Short}}{{end}}{{end}}{{end}}{{if .HasSubCommands}}
+
+{{colorYellow (printf "Use \"%s [command] --help\" for more information about a command." .CommandPath)}}{{end}}
+`
+
+/// cmd/wrpr.go ///
+package main
+
+import (
+	cc "github.com/rafa-mori/goforge/cmd/cli"
+	gl "github.com/rafa-mori/goforge/logger"
+	vs "github.com/rafa-mori/goforge/version"
+	"github.com/spf13/cobra"
+
+	"os"
+	"strings"
+)
+
+type GoForge struct {
+	parentCmdName string
+	printBanner   bool
+}
+
+func (m *GoForge) Alias() string {
+	return ""
+}
+func (m *GoForge) ShortDescription() string {
+	return "GoForge is a minimalistic backend service with Go."
+}
+func (m *GoForge) LongDescription() string {
+	return `GoForge: A minimalistic backend service with Go.`
+}
+func (m *GoForge) Usage() string {
+	return "goforge [command] [args]"
+}
+func (m *GoForge) Examples() []string {
+	return []string{"goforge some-command",
+		"goforge another-command --option value",
+		"goforge yet-another-command --flag"}
+}
+func (m *GoForge) Active() bool {
+	return true
+}
+func (m *GoForge) Module() string {
+	return "goforge"
+}
+func (m *GoForge) Execute() error {
+	return m.Command().Execute()
+}
+func (m *GoForge) Command() *cobra.Command {
+	gl.Log("debug", "Starting GoForge CLI...")
+
+	var rtCmd = &cobra.Command{
+		Use:     m.Module(),
+		Aliases: []string{m.Alias()},
+		Example: m.concatenateExamples(),
+		Version: vs.GetVersion(),
+		Annotations: cc.GetDescriptions([]string{
+			m.LongDescription(),
+			m.ShortDescription(),
+		}, m.printBanner),
+	}
+
+	rtCmd.AddCommand(cc.ServiceCmdList()...)
+	rtCmd.AddCommand(vs.CliCommand())
+
+	// Set usage definitions for the command and its subcommands
+	setUsageDefinition(rtCmd)
+	for _, c := range rtCmd.Commands() {
+		setUsageDefinition(c)
+		if !strings.Contains(strings.Join(os.Args, " "), c.Use) {
+			if c.Short == "" {
+				c.Short = c.Annotations["description"]
+			}
+		}
+	}
+
+	return rtCmd
+}
+func (m *GoForge) SetParentCmdName(rtCmd string) {
+	m.parentCmdName = rtCmd
+}
+func (m *GoForge) concatenateExamples() string {
+	examples := ""
+	rtCmd := m.parentCmdName
+	if rtCmd != "" {
+		rtCmd = rtCmd + " "
+	}
+	for _, example := range m.Examples() {
+		examples += rtCmd + example + "\n  "
+	}
+	return examples
+}
+func RegX() *GoForge {
+	var printBannerV = os.Getenv("GOFORGE_PRINT_BANNER")
+	if printBannerV == "" {
+		printBannerV = "true"
+	}
+
+	return &GoForge{
+		printBanner: strings.ToLower(printBannerV) == "true",
+	}
+}
+
+/// docs/CONTRIBUTING.md ///
+# **Contributing to GoForge**
+
+Thank you for your interest in contributing to **[GoForge](https://github.com/rafa-mori/goforge)**! We are excited to have you as part of our community. This guide will help you get started and contribute effectively to the project.
+
+---
+
+## **How to Contribute**
+
+There are several ways to contribute to [GoForge](https://github.com/rafa-mori/goforge):
+
+1. **Report Issues**
+   - Found bugs or issues in the code? Open an issue detailing the problem.
+   - Include as much information as possible: steps to reproduce the issue, logs, Go version used, etc.
+
+2. **Suggest Improvements**
+   - Have an idea to improve the project? Share your suggestion by opening an issue with the `enhancement` tag.
+
+3. **Submit Pull Requests**
+   - Want to fix a bug or implement something new? Submit a pull request with your changes.
+
+4. **Test and Review Code**
+   - Help review pull requests from other contributors.
+   - Run existing tests and validate if the proposed changes keep the system functional.
+
+---
+
+## **Getting Started**
+
+### 1. **Clone the Repository**
+
+```bash
+git clone https://github.com/rafa-mori/goforge.git
+cd goforge
+```
+
+### 2. **Set Up the Environment**
+
+Make sure you have Go installed:
+You can install Go using one of the following methods:
+
+- [A super easy way to install Go](https://github.com/rafa-mori/gosetup)
+
+  ```shell
+    curl -sSfL 'https://raw.githubusercontent.com/rafa-mori/gosetup/refs/heads/main/go.sh' | bash
+  ```
+
+- [Convencional way to download Go](https://go.dev/dl/)
+
+### 3. **Install Dependencies**
+
+```bash
+# Download the necessary packages
+go mod download
+```
+
+### 4. **Run Tests**+
+
+Before making changes, run the existing tests:
+
+```bash
+go test ./...
+```
+
+---
+
+## **Creating a Pull Request**
+
+### **1. Fork the Repository**
+
+Create a fork of the project to your own GitHub.
+
+### **2. Create a New Branch**
+
+```bash
+git checkout -b your-feature
+```
+
+### **3. Make Changes**
+
+```bash
+# Edit the code in your favorite editor
+```
+
+Make sure to follow the project's code conventions and best practices.
+
+### **4. Add Tests (if applicable)**
+
+Include test cases to validate the added functionality.
+
+### **5. Run Tests**
+
+Ensure all changes and tests are working:
+
+```bash
+go test ./...
+```
+
+### **6. Commit and Push**
+
+```bash
+git add .
+git commit -m "Brief description of the change"
+git push origin your-feature
+```
+
+### **7. Open the Pull Request**
+
+Go to the original repository on GitHub and open a pull request explaining your changes.
+
+---
+
+## **Code Standards**
+
+### **Code Style**
+
+This project follows Go's code conventions. Some recommendations:
+
+- Use `gofmt` to format the code:
+
+```bash
+gofmt -w .
+```
+
+- Name variables and functions clearly and descriptively.
+- Break down long functions into smaller parts whenever possible.
+
+### **Commits**
+
+Commits should be clear and descriptive. Examples:
+
+- `fix: fix bug in notification logic`
+- `feat: add support for Slack notifier`
+
+---
+
+## **Best Practices**
+
+1. **Be Respectful and Welcoming**  
+   This is an open-source project for everyone. Respect other contributors and collaborate constructively.
+
+2. **Document Your Changes**  
+   Update the `README.md` or documentation, if necessary, to include your changes.
+
+3. **Add Tests When Possible**  
+   Ensure any new functionality is accompanied by tests.
+
+4. **Be Clear in Issue Reports**  
+   When opening an issue, be detailed and provide as much context as possible.
+
+---
+
+## **Where to Get Help**
+
+If you need assistance, feel free to:
+
+- Open an issue with the `question` tag.
+- Contact me via the email or LinkedIn listed in the `README.md`.
+
+---
+
+## **Our Commitment**
+
+We commit to reviewing pull requests and issues as quickly as possible. We value your contribution and appreciate the time dedicated to the project!
+
+/// docs/pages/wrpr-wrapper.md ///
+# GoForge CLI Wrapper Documentation
+
+## Overview
+
+The `cmd/wrpr.go` file implements a wrapper for the GoForge CLI, providing a structured interface for managing application commands and configurations.
+
+## Main Structure
+
+### `GoForge` Type
+
+```go
+type GoForge struct {
+    parentCmdName string
+    printBanner   bool
+}
+```
+
+**Fields:**
+
+- `parentCmdName`: Parent command name for example concatenation
+- `printBanner`: Flag that controls whether the banner should be displayed
+
+## Interface Methods
+
+### Configuration Methods
+
+- **`Alias()`**: Returns empty string (no alias defined)
+- **`ShortDescription()`**: Short description of GoForge
+- **`LongDescription()`**: Long description of GoForge  
+- **`Usage()`**: Command usage pattern
+- **`Examples()`**: List of usage examples
+- **`Active()`**: Always returns `true` (active module)
+- **`Module()`**: Returns "goforge" as module name
+
+### Execution Methods
+
+- **`Execute()`**: Executes the main command
+- **`Command()`**: Builds and configures the main Cobra command
+
+### Utility Methods
+
+- **`SetParentCmdName()`**: Sets the parent command name
+- **`concatenateExamples()`**: Concatenates examples with parent command name
+
+## Main Functionalities
+
+### 1. Cobra Command Configuration
+
+The `Command()` method configures:
+
+- Root command with use, aliases, and version
+- Adds subcommands through `cc.ServiceCmdList()`
+- Adds version command
+- Sets usage definitions for all commands
+
+### 2. Argument Processing
+
+The code processes command line arguments to:
+
+- Check if specific commands are being executed
+- Configure short descriptions for commands without them
+
+### 3. Environment Configuration
+
+The `RegX()` function configures the instance based on environment variables:
+
+- `ARTICLE_PRINT_BANNER`: Controls banner display (default: "true")
+
+## Initialization Function
+
+### `RegX()`
+
+```go
+func RegX() *GoForge
+```
+
+**Responsibilities:**
+
+- Reads `GOFORGE_PRINT_BANNER` environment variable
+- Creates and returns new `GoForge` instance
+- Sets default configuration for banner display
+
+## Dependencies
+
+- **Cobra**: CLI framework for Go
+- **Internal modules**:
+  - `cc`: CLI commands
+  - `gl`: Logging system
+  - `vs`: Version management
+
+## Design Patterns
+
+- **Wrapper Pattern**: Encapsulates Cobra functionality
+- **Factory Pattern**: `RegX()` function for instance creation
+- **Interface Segregation**: Specific methods for different CLI aspects
+
+## Notes
+
+- Module name is hardcoded as "goforge"
+- Support for configuration via environment variables
+- Integration with logging system for debugging
+- Automatic configuration of commands and subcommands
+
+## Usage Example
+
+```go
+// Create GoForge instance
+goforge := RegX()
+
+// Execute CLI
+if err := goforge.Execute(); err != nil {
+    log.Fatal(err)
+}
+```
+
+## Environment Variables
+
+| Variable | Description | Default |
+|----------|-------------|---------|
+| `ARTICLE_PRINT_BANNER` | Controls banner display | `"true"` |
+
+## Command Structure
+
+```text
+goforge
+├── [service commands from cc.ServiceCmdList()]
+└── version (from vs.CliCommand())
+```
+
+/// go.mod ///
+module github.com/rafa-mori/goforge
+
+go 1.24.5
+
+require (
+	github.com/fatih/color v1.18.0
+	github.com/rafa-mori/logz v1.3.0
+	github.com/spf13/cobra v1.9.1
+)
+
+require (
+	github.com/fsnotify/fsnotify v1.9.0 // indirect
+	github.com/go-viper/mapstructure/v2 v2.2.1 // indirect
+	github.com/godbus/dbus/v5 v5.1.0 // indirect
+	github.com/inconshreveable/mousetrap v1.1.0 // indirect
+	github.com/mattn/go-colorable v0.1.14 // indirect
+	github.com/mattn/go-isatty v0.0.20 // indirect
+	github.com/pelletier/go-toml/v2 v2.2.4 // indirect
+	github.com/sagikazarmark/locafero v0.9.0 // indirect
+	github.com/sourcegraph/conc v0.3.0 // indirect
+	github.com/spf13/afero v1.14.0 // indirect
+	github.com/spf13/cast v1.8.0 // indirect
+	github.com/spf13/pflag v1.0.6 // indirect
+	github.com/spf13/viper v1.20.1 // indirect
+	github.com/subosito/gotenv v1.6.0 // indirect
+	go.uber.org/multierr v1.11.0 // indirect
+	golang.org/x/sys v0.33.0 // indirect
+	golang.org/x/text v0.25.0 // indirect
+	gopkg.in/yaml.v3 v3.0.1 // indirect
+)
+
+/// goforge.go ///
+// Package goforge provides the GoForge interface for goforge modules.
+package goforge
+
+import "github.com/spf13/cobra"
+
+// This file/package allows the goforge module to be used as a library.
+// It defines the GoForge interface which can be implemented by any module
+// that wants to be part of the goforge ecosystem.
+
+type GoForge interface {
+	// Alias returns the alias for the command.
+	Alias() string
+	// ShortDescription returns a brief description of the command.
+	ShortDescription() string
+	// LongDescription returns a detailed description of the command.
+	LongDescription() string
+	// Usage returns the usage string for the command.
+	Usage() string
+	// Examples returns a list of example usages for the command.
+	Examples() []string
+	// Active returns true if the command is active and should be executed.
+	Active() bool
+	// Module returns the name of the module.
+	Module() string
+	// Execute runs the command and returns an error if it fails.
+	Execute() error
+	// Command returns the cobra.Command associated with this module.
+	Command() *cobra.Command
+}
+
+/// logger/logger.go ///
+// Package logger provides a logging utility for Go applications.
+package logger
+
+import (
+	"fmt"
+	"reflect"
+	"runtime"
+	"strings"
+
+	l "github.com/rafa-mori/logz"
+)
+
+type gLog struct {
+	l.Logger
+	gLogLevel LogType
+}
+
+var (
+	// debug is a boolean that indicates whether to log debug messages.
+	debug bool
+	// g is the global logger instance.
+	g *gLog = &gLog{
+		Logger:    l.GetLogger("GoBE - Test"),
+		gLogLevel: LogTypeInfo,
+	}
+)
+
+func init() {
+	// Set the debug flag to true for testing purposes.
+	debug = false
+	// Initialize the global logger instance with a default logger.
+	if g.Logger == nil {
+		g = &gLog{
+			Logger:    l.GetLogger("GoBE - Test"),
+			gLogLevel: LogTypeInfo,
+		}
+	}
+}
+
+type LogType string
+
+const (
+	LogTypeNotice  LogType = "notice"
+	LogTypeInfo    LogType = "info"
+	LogTypeDebug   LogType = "debug"
+	LogTypeError   LogType = "error"
+	LogTypeWarn    LogType = "warn"
+	LogTypeFatal   LogType = "fatal"
+	LogTypePanic   LogType = "panic"
+	LogTypeSuccess LogType = "success"
+)
+
+// SetDebug is a function that sets the debug flag for logging.
+func SetDebug(d bool) { debug = d }
+
+// LogObjLogger is a function that logs messages with the specified log type.
+func LogObjLogger[T any](obj *T, logType string, messages ...string) {
+	if obj == nil {
+		g.ErrorCtx(fmt.Sprintf("log object (%s) is nil", reflect.TypeFor[T]()), map[string]any{
+			"context":  "Log",
+			"logType":  logType,
+			"object":   obj,
+			"msg":      messages,
+			"showData": true,
+		})
+		return
+	}
+	var lgr l.Logger
+	if objValueLogger := reflect.ValueOf(obj).Elem().MethodByName("GetLogger"); !objValueLogger.IsValid() {
+		if objValueLogger = reflect.ValueOf(obj).Elem().FieldByName("Logger"); !objValueLogger.IsValid() {
+			g.ErrorCtx(fmt.Sprintf("log object (%s) does not have a logger field", reflect.TypeFor[T]()), map[string]any{
+				"context":  "Log",
+				"logType":  logType,
+				"object":   obj,
+				"msg":      messages,
+				"showData": true,
+			})
+			return
+		} else {
+			lgrC := objValueLogger.Convert(reflect.TypeFor[l.Logger]())
+			if lgrC.IsNil() {
+				lgrC = reflect.ValueOf(g.Logger)
+			}
+			if lgr = lgrC.Interface().(l.Logger); lgr == nil {
+				lgr = g.Logger
+			}
+		}
+	} else {
+		//lgrC := objValueLogger.Call(nil)[0].Convert(reflect.TypeFor[l.Logger]())
+		//if lgrC.IsNil() {
+		//	lgrC = reflect.ValueOf(g.Logger)
+		//}
+		//if lgr = lgrC.Interface().(l.Logger); lgr == nil {
+		lgr = g.Logger
+		//}
+	}
+	pc, file, line, ok := runtime.Caller(1)
+	if !ok {
+		lgr.ErrorCtx("Log: unable to get caller information", nil)
+		return
+	}
+	funcName := runtime.FuncForPC(pc).Name()
+	ctxMessageMap := map[string]any{
+		"context":  funcName,
+		"file":     file,
+		"line":     line,
+		"showData": debug,
+	}
+	fullMessage := strings.Join(messages, " ")
+	logType = strings.ToLower(logType)
+	if logType != "" {
+		if reflect.TypeOf(logType).ConvertibleTo(reflect.TypeFor[LogType]()) {
+			lType := LogType(logType)
+			ctxMessageMap["logType"] = logType
+			logging(lgr, lType, fullMessage, ctxMessageMap)
+		} else {
+			lgr.ErrorCtx(fmt.Sprintf("logType (%s) is not valid", logType), ctxMessageMap)
+		}
+	} else {
+		lgr.InfoCtx(fullMessage, ctxMessageMap)
+	}
+}
+
+// Log is a function that logs messages with the specified log type and caller information.
+func Log(logType string, messages ...any) {
+	pc, file, line, ok := runtime.Caller(1)
+	if !ok {
+		g.ErrorCtx("Log: unable to get caller information", nil)
+		return
+	}
+	funcName := runtime.FuncForPC(pc).Name()
+	ctxMessageMap := map[string]any{
+		"context":  funcName,
+		"file":     file,
+		"line":     line,
+		"showData": debug,
+	}
+	fullMessage := ""
+	if len(messages) > 0 {
+		fullMessage = fmt.Sprintf("%v", messages[0:])
+	}
+	logType = strings.ToLower(logType)
+	if logType != "" {
+		if reflect.TypeOf(logType).ConvertibleTo(reflect.TypeFor[LogType]()) {
+			lType := LogType(logType)
+			ctxMessageMap["logType"] = logType
+			logging(g.Logger, lType, fullMessage, ctxMessageMap)
+		} else {
+			g.ErrorCtx(fmt.Sprintf("logType (%s) is not valid", logType), ctxMessageMap)
+		}
+	} else {
+		g.InfoCtx(fullMessage, ctxMessageMap)
+	}
+}
+
+// logging is a helper function that logs messages with the specified log type.
+func logging(lgr l.Logger, lType LogType, fullMessage string, ctxMessageMap map[string]interface{}) {
+	debugCtx := debug
+	if !debugCtx {
+		if lType == "error" || lType == "fatal" || lType == "panic" || lType == "debug" {
+			// If debug is false, set the debug value based on the logType
+			debugCtx = true
+		} else {
+			debugCtx = false
+		}
+	}
+	ctxMessageMap["showData"] = debugCtx
+	switch lType {
+	case LogTypeInfo:
+		lgr.InfoCtx(fullMessage, ctxMessageMap)
+	case LogTypeDebug:
+		lgr.DebugCtx(fullMessage, ctxMessageMap)
+	case LogTypeError:
+		lgr.ErrorCtx(fullMessage, ctxMessageMap)
+	case LogTypeWarn:
+		lgr.WarnCtx(fullMessage, ctxMessageMap)
+	case LogTypeNotice:
+		lgr.NoticeCtx(fullMessage, ctxMessageMap)
+	case LogTypeSuccess:
+		lgr.SuccessCtx(fullMessage, ctxMessageMap)
+	case LogTypeFatal:
+		lgr.FatalCtx(fullMessage, ctxMessageMap)
+	case LogTypePanic:
+		lgr.FatalCtx(fullMessage, ctxMessageMap)
+	default:
+		lgr.InfoCtx(fullMessage, ctxMessageMap)
+	}
+	//debugCtx = debug
+}
+
+/// support/build.sh ///
+#!/usr/bin/env bash
+
+set -euo pipefail
+set -o errtrace
+set -o functrace
+set -o posix
+IFS=$'\n\t'
+
+build_binary() {
+  local _PLATFORM_ARG="${1:-${_PLATFORM:-}}"
+  local _ARCH_ARG="${2:-${_ARCH:-}}"
+
+  # Obtém arrays de plataformas e arquiteturas
+  local platforms=( "$(_get_os_arr_from_args "$_PLATFORM_ARG")" )
+  local archs=( "$(_get_arch_arr_from_args "$_ARCH_ARG")" )
+
+  for platform_pos in "${platforms[@]}"; do
+    [[ -z "$platform_pos" ]] && continue
+    for arch_pos in "${archs[@]}"; do
+      [[ -z "$arch_pos" ]] && continue
+      if [[ "$platform_pos" != "darwin" && "$arch_pos" == "arm64" ]]; then
+        continue
+      fi
+      if [[ "$platform_pos" != "windows" && "$arch_pos" == "386" ]]; then
+        continue
+      fi
+      local OUTPUT_NAME
+      OUTPUT_NAME=$(printf '%s_%s_%s' "${_BINARY}" "$platform_pos" "$arch_pos")
+      if [[ "$platform_pos" == "windows" ]]; then
+        OUTPUT_NAME=$(printf '%s.exe' "$OUTPUT_NAME")
+      fi
+
+      local build_env=("GOOS=${platform_pos}" "GOARCH=${arch_pos}")
+      local build_args=(
+        "-ldflags '-s -w -X main.version=$(git describe --tags) -X main.commit=$(git rev-parse HEAD) -X main.date=$(date +%Y-%m-%d)'"
+        "-trimpath -o \"$OUTPUT_NAME\" \"${_CMD_PATH}\""
+      )
+      local build_cmd=""
+      build_cmd=$(printf '%s %s %s' "${build_env[@]}" "go build " "${build_args[@]}")
+
+      log info "Compilando para ${platform_pos}/${arch_pos}"
+
+      if ! bash -c "${build_cmd}"; then
+        log error "Falha ao compilar para ${platform_pos} ${arch_pos}"
+        return 1
+      else
+        if [[ "$platform_pos" != "windows" ]]; then
+            install_upx || return 1
+            upx "$OUTPUT_NAME" --force-overwrite --lzma --no-progress --no-color -qqq || true
+            log success "Binário empacotado: ${OUTPUT_NAME}"
+        fi
+        if [[ ! -f "$OUTPUT_NAME" ]]; then
+          log error "Binário não encontrado: ${OUTPUT_NAME}"
+          return 1
+        else
+          compress_binary "$platform_pos" "$arch_pos" || return 1
+          log success "Binário criado com sucesso: ${OUTPUT_NAME}"
+        fi
+      fi
+    done
+  done
+  log success "Todos os builds foram concluídos com sucesso!"
+}
+
+compress_binary() {
+  local platform_arg="${1:-${_PLATFORM:-}}"
+  local arch_arg="${2:-${_ARCH:-}}"
+
+  # Obtém arrays de plataformas e arquiteturas
+  local platforms=( "$(_get_os_arr_from_args "$platform_arg")" )
+  local archs=( "$(_get_arch_arr_from_args "$arch_arg")" )
+
+  for platform_pos in "${platforms[@]}"; do
+    [[ -z "$platform_pos" ]] && continue
+    for arch_pos in "${archs[@]}"; do
+      [[ -z "$arch_pos" ]] && continue
+      if [[ "$platform_pos" != "darwin" && "$arch_pos" == "arm64" ]]; then
+        continue
+      fi
+      if [[ "$platform_pos" == "linux" && "$arch_pos" == "386" ]]; then
+        continue
+      fi
+      local BINARY_NAME
+      BINARY_NAME=$(printf '%s_%s_%s' "${_BINARY}" "$platform_pos" "$arch_pos")
+      if [[ "$platform_pos" == "windows" ]]; then
+        BINARY_NAME=$(printf '%s.exe' "${BINARY_NAME}")
+      fi
+      local OUTPUT_NAME="${BINARY_NAME//.exe/}"
+      local compress_cmd_exec=""
+      if [[ "$platform_pos" != "windows" ]]; then
+        OUTPUT_NAME="${OUTPUT_NAME}.tar.gz"
+        _CURR_PATH="$(pwd)"
+        _BINARY_PATH="$(dirname "${BINARY_NAME:-\.\/}")"
+        cd "${_BINARY_PATH}" || true # Just to avoid tar warning about relative paths
+        if tar -czf "./$(basename "${OUTPUT_NAME}")" "./$(basename "${BINARY_NAME}")"; then
+          compress_cmd_exec="true"
+        else
+          compress_cmd_exec="false"
+        fi
+        cd "${_CURR_PATH}" || true
+      else
+        OUTPUT_NAME="${OUTPUT_NAME}.zip"
+        # log info "Comprimindo para ${platform_pos} ${arch_pos} em ${OUTPUT_NAME}..."
+        if zip -r -9 "${OUTPUT_NAME}" "${BINARY_NAME}" >/dev/null; then
+          compress_cmd_exec="true"
+        else
+          compress_cmd_exec="false"
+        fi
+      fi
+      if [[ "$compress_cmd_exec" == "false" ]]; then
+        log error "Falha ao comprimir para ${platform_pos} ${arch_pos}"
+        return 1
+      else
+        log success "Binário comprimido: ${OUTPUT_NAME}"
+      fi
+    done
+  done
+}
+
+export -f build_binary
+export -f compress_binary
+
+/// support/config.sh ///
+#!/usr/bin/env bash
+
+set -euo pipefail
+set -o errtrace
+set -o functrace
+set -o posix
+IFS=$'\n\t'
+
+# Define o diretório raiz (assumindo que este script está em lib/ no root)
+_ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+_APP_NAME="${APP_NAME:-$(basename "${_ROOT_DIR}")}"
+_PROJECT_NAME="$_APP_NAME"
+_OWNER="${OWNER:-"rafa-mori"}"
+# Tenta ler a versão, ou define um fallback
+_VERSION=$(cat "$_ROOT_DIR/version/CLI_VERSION" 2>/dev/null || echo "v0.0.0")
+# Extrai a versão do Go do go.mod (certifique-se de que este arquivo exista na raiz)
+_VERSION_GO=$(grep '^go ' "$_ROOT_DIR/go.mod" | awk '{print $2}')
+
+_LICENSE="MIT"
+
+_ABOUT="################################################################################
+  Este script instala o projeto ${_PROJECT_NAME}, versão ${_VERSION}.
+  OS suportados: Linux, MacOS, Windows
+  Arquiteturas suportadas: amd64, arm64, 386
+  Fonte: https://github.com/${_OWNER}/${_PROJECT_NAME}
+  Binary Release: https://github.com/${_OWNER}/${_PROJECT_NAME}/releases/latest
+  License: ${_LICENSE}
+  Notas:
+    - [version] é opcional; se omitido, a última versão será utilizada.
+    - Se executado localmente, o script tentará resolver a versão pelos tags do repositório.
+    - Instala em ~/.local/bin para usuário não-root ou em /usr/local/bin para root.
+    - Adiciona o diretório de instalação à variável PATH.
+    - Instala o UPX se necessário, ou compila o binário (build) conforme o comando.
+    - Faz download do binário via URL de release ou efetua limpeza de artefatos.
+    - Verifica dependências e versão do Go.
+################################################################################"
+
+_BANNER="################################################################################
+
+            ██████╗  ██████╗ ███████╗ ██████╗ ██████╗  ██████╗ ███████╗
+            ██╔════╝ ██╔═══██╗██╔════╝██╔═══██╗██╔══██╗██╔════╝ ██╔════╝
+            ██║  ███╗██║   ██║█████╗  ██║   ██║██████╔╝██║  ███╗█████╗  
+            ██║   ██║██║   ██║██╔══╝  ██║   ██║██╔══██╗██║   ██║██╔══╝  
+            ╚██████╔╝╚██████╔╝██║     ╚██████╔╝██║  ██║╚██████╔╝███████╗
+            ╚═════╝  ╚═════╝ ╚═╝      ╚═════╝ ╚═╝  ╚═╝ ╚═════╝ ╚══════╝"
+
+# Caminhos para a compilação
+_CMD_PATH="$_ROOT_DIR/cmd"
+_BUILD_PATH="$(dirname "$_CMD_PATH")"
+_BINARY="$_BUILD_PATH/$_APP_NAME"
+
+# Diretórios de instalação
+_LOCAL_BIN="${HOME:-"~"}/.local/bin"
+_GLOBAL_BIN="/usr/local/bin"
+
+# Caso queira, defina o OWNER (use no get_release_url)
+_OWNER="rafa-mori"
+
+
+/// support/docs/mkdocs.yml ///
+site_name: TimeCraft AI
+site_url: https://rafa-mori.github.io/timecraft/
+site_description: 'Advanced time series analysis, database integration, and task automation with dynamic notifications and powerful CLI'
+site_author: 'Rafael Mori'
+
+repo_name: 'rafa-mori/timecraft'
+repo_url: https://github.com/rafa-mori/timecraft
+
+theme:
+  name: material
+  palette:
+    primary: 'indigo'
+    accent: 'indigo'
+  features:
+    - navigation.tabs
+    - navigation.top
+    - navigation.instant
+    - navigation.expand
+    - navigation.sections
+    - navigation.tracking
+    - navigation.tabs.sticky
+    - navigation.tabs.sticky.scroll
+    - navigation.tabs.sticky.scroll.offset: 64
+    - navigation.tabs.sticky.scroll.offset.mobile: 0
+    - navigation.tabs.sticky.scroll.offset.desktop: 64
+    - navigation.tabs.sticky.scroll.offset.tablet: 64
+    - search.highlight
+    - search.share
+    - search.suggest
+  font:
+    text: Roboto
+    code: Roboto Mono
+  icon:
+    repo: fontawesome/brands/github
+
+markdown_extensions:
+  - admonition
+  - codehilite:
+      linenums: true
+  - toc:
+      permalink: True
+      title: On this page
+  - attr_list
+  - def_list
+  - footnotes
+  - md_in_html
+  - smarty
+  - tables
+  - pymdownx.arithmatex:
+      generic: true
+  - pymdownx.betterem:
+      smart_enable: all
+  - pymdownx.caret
+  - pymdownx.details
+  - pymdownx.highlight:
+      anchor_linenums: true
+  - pymdownx.inlinehilite
+  - pymdownx.keys
+  - pymdownx.magiclink:
+      repo_url_shorthand: true
+      user: rafa-mori
+      repo: timecraft
+  - pymdownx.mark
+  - pymdownx.smartsymbols
+  - pymdownx.superfences:
+      custom_fences:
+        - name: mermaid
+          class: mermaid
+          format: pymdownx.superfences.fence_code_format
+  - pymdownx.tabbed:
+      alternate_style: true
+  - pymdownx.tasklist:
+      custom_checkbox: true
+  - pymdownx.tilde
+
+nav:
+  - Home: index.md
+  - Documentation:
+    - Getting Started:
+      - README: README.en.md
+      - Installation: INSTALL.md
+      - AI Integration: INSTALL_AI.md
+    - User Guide:
+      - README (Portuguese): README.pt-BR.md
+  - Community:
+    - Contributing: CONTRIBUTING.md
+    - Code of Conduct: CODE_OF_CONDUCT.md
+    - Support: SUPPORT.md
+    - Authors: AUTHORS.md
+  - Project Info:
+    - License: LICENSE
+    - Notice: NOTICE.md
+    - Security Policy: SECURITY.md
+    - Changelog: CHANGELOG.md
+
+extra:
+  social:
+    - icon: fontawesome/brands/github
+      link: https://github.com/rafa-mori/timecraft
+      name: TimeCraft AI on GitHub
+    - icon: fontawesome/brands/linkedin
+      link: https://www.linkedin.com/in/rafa-mori/
+      name: Rafael Mori on LinkedIn
+    - icon: fontawesome/brands/twitter
+      link: https://twitter.com/faelOmori
+      name: Rafael Mori on Twitter
+  version:
+    provider: mike
+  analytics:
+    provider: google
+    property: ${G-7HLY17F3DK}
+
+# plugins:
+#   - search:
+#       lang: en
+#   - git-revision-date-localized:
+#       type: datetime
+#       timezone: America/Sao_Paulo
+#       locale: en
+#       fallback_to_build_date: true
+
+/// support/info.sh ///
+#!/usr/bin/env bash
+# lib/info.sh – Funções para exibir banners e resumo de instalação
+
+show_about() {
+    printf '%s\n\n' "${_ABOUT:-}"
+}
+
+show_banner() {
+    printf '\n%s\n\n' "${_BANNER:-}"
+}
+
+show_headers() {
+    show_banner || return 1
+    show_about || return 1
+}
+
+summary() {
+    local install_dir="$_BINARY"
+    log success "Build e instalação concluídos!"
+    log success "Binário: $_BINARY"
+    log success "Instalado em: ${install_dir}"
+    check_path "$install_dir"
+}
+
+export -f show_about
+export -f show_banner
+export -f show_headers
+export -f summary
+
+
+/// support/install.sh ///
+#!/usr/bin/env bash
+# shellcheck disable=SC2065,SC2015
+
+# Script Metadata
+__secure_logic_version="1.0.0"
+__secure_logic_date="$( date +%Y-%m-%d )"
+__secure_logic_author="Rafael Mori"
+__secure_logic_use_type="exec"
+__secure_logic_init_timestamp="$(date +%s)"
+__secure_logic_elapsed_time=0
+
+# Check if verbose mode is enabled
+if [[ "${MYNAME_VERBOSE:-false}" == "true" ]]; then
+  set -x  # Enable debugging
+fi
+
+IFS=$'\n\t'
+
+__secure_logic_sourced_name() {
+  local _self="${BASH_SOURCE-}"
+  _self="${_self//${_kbx_root:-$()}/}"
+  _self="${_self//\.sh/}"
+  _self="${_self//\-/_}"
+  _self="${_self//\//_}"
+  echo "_was_sourced_${_self//__/_}"
+  return 0
+}
+
+__first(){
+  if [ "$EUID" -eq 0 ] || [ "$UID" -eq 0 ]; then
+    echo "Please do not run as root." 1>&2 > /dev/tty
+    exit 1
+  elif [ -n "${SUDO_USER:-}" ]; then
+    echo "Please do not run as root, but with sudo privileges." 1>&2 > /dev/tty
+    exit 1
+  else
+    # shellcheck disable=SC2155
+    local _ws_name="$(__secure_logic_sourced_name)"
+
+    if test "${BASH_SOURCE-}" != "${0}"; then
+      if test $__secure_logic_use_type != "lib"; then
+        echo "This script is not intended to be sourced." 1>&2 > /dev/tty
+        echo "Please run it directly." 1>&2 > /dev/tty
+        exit 1
+      fi
+      # If the script is sourced, we set the variable to true
+      # and export it to the environment without changing
+      # the shell options.
+      export "${_ws_name}"="true"
+    else
+      if test $__secure_logic_use_type != "exec"; then
+        echo "This script is not intended to be executed directly." 1>&2 > /dev/tty
+        echo "Please source it instead." 1>&2 > /dev/tty
+        exit 1
+      fi
+      # If the script is executed directly, we set the variable to false
+      # and export it to the environment. We also set the shell options
+      # to ensure a safe execution.
+      export "${_ws_name}"="false"
+      set -o errexit # Exit immediately if a command exits with a non-zero status
+      set -o nounset # Treat unset variables as an error when substituting
+      set -o pipefail # Return the exit status of the last command in the pipeline that failed
+      set -o errtrace # If a command fails, the shell will exit immediately
+      set -o functrace # If a function fails, the shell will exit immediately
+      shopt -s inherit_errexit # Inherit the errexit option in functions
+    fi
+  fi
+}
+
+run_custom_scripts() {
+  local _STAGE="${1:-post}"
+
+  if test -d "${_SCRIPT_DIR}/${_STAGE}.d/"; then
+    log info "Diretório de scripts personalizados encontrado: ${_SCRIPT_DIR}/${_STAGE}.d/"
+    if ls -1A "${_SCRIPT_DIR}/${_STAGE}.d/" >/dev/null 2>&1; then
+      log info "Executando scripts personalizados..."
+
+      local _CUSTOM_SCRIPTS=()
+      _CUSTOM_SCRIPTS=( "$(ls -1A "${_SCRIPT_DIR}/${_STAGE}.d/" || true)" )
+
+      for _CUSTOM_SCRIPT in "${_CUSTOM_SCRIPTS[@]}"; do
+        if [[ -f "${_SCRIPT_DIR}/${_STAGE}.d/${_CUSTOM_SCRIPT}" ]]; then
+          log info "Executando script: ${_CUSTOM_SCRIPT}"
+
+          chmod +x "${_SCRIPT_DIR}/${_STAGE}.d/${_CUSTOM_SCRIPT}" || log error "Erro ao definir permissão de execução para o script: ${_CUSTOM_SCRIPT}"
+
+          "${_SCRIPT_DIR}/${_STAGE}.d/${_CUSTOM_SCRIPT}" || log error "Erro ao executar o script: ${_CUSTOM_SCRIPT}"
+        else
+          log warn "Script não encontrado: ${_CUSTOM_SCRIPT}"
+        fi
+      done  
+    else
+      log warn "Nenhum script personalizado encontrado no diretório: ${_SCRIPT_DIR}/${_STAGE}.d/"
+      return 0
+    fi
+  else
+    log warn "Diretório de scripts personalizados não encontrado: ${_SCRIPT_DIR}/${_STAGE}.d/"
+    return 0
+  fi
+}
+
+_DEBUG=${DEBUG:-false}
+_HIDE_ABOUT=${HIDE_ABOUT:-false}
+
+__first "$@" >/dev/tty || exit 1
+
+# Carrega os arquivos de biblioteca
+_SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+#shellcheck source=/dev/null
+test -z "${_BANNER:-}" && source "${_SCRIPT_DIR}/config.sh" || true
+#shellcheck source=/dev/null
+test -z "$(declare -f log)" >/dev/null && source "${_SCRIPT_DIR}/utils.sh" || true
+#shellcheck source=/dev/null
+test -z "$(declare -f what_platform)" >/dev/null && source "${_SCRIPT_DIR}/platform.sh" || true
+#shellcheck source=/dev/null
+test -z "$(declare -f check_dependencies)" >/dev/null && source "${_SCRIPT_DIR}/validate.sh" || true
+#shellcheck source=/dev/null
+test -z "$(declare -f detect_shell_rc)" >/dev/null && source "${_SCRIPT_DIR}/install_funcs.sh" || true
+#shellcheck source=/dev/null
+test -z "$(declare -f build_binary)" >/dev/null && source "${_SCRIPT_DIR}/build.sh" || true
+#shellcheck source=/dev/null
+test -z "$(declare -f show_banner)" >/dev/null && source "${_SCRIPT_DIR}/info.sh" || true
+
+# Inicializa os traps
+set_trap "$@"
+
+clear_screen
+
+__main() {
+  if ! what_platform; then
+    log error "Plataforma não suportada: ${_PLATFORM}"
+    exit 1
+  fi
+
+  if [[ "${_DEBUG}" != true ]]; then
+    show_headers
+    if [[ -z "${_HIDE_ABOUT}" ]]; then
+      show_about
+    fi
+  else
+    log info "Modo debug ativado; banner será ignorado..."
+    if [[ -z "${_HIDE_ABOUT}" ]]; then
+      show_about
+    fi
+  fi
+
+  _ARGS=( "$@" )
+  local default_label='Auto detect'
+  local arrArgs=( "${_ARGS[@]:0:$#}" )
+  local PLATFORM_ARG
+  PLATFORM_ARG=$(_get_os_from_args "${arrArgs[1]:-${_PLATFORM}}")
+  local ARCH_ARG
+  ARCH_ARG=$(_get_arch_arr_from_args "${arrArgs[2]:-${_ARCH}}")
+
+  log info "Comando: ${arrArgs[0]:-}" true
+  log info "Plataforma: ${PLATFORM_ARG:-$default_label}" true
+  log info "Arquitetura: ${ARCH_ARG:-$default_label}" true
+  log info "Args: ${_ARGS[*]:-}" true
+
+  case "${arrArgs[0]:-}" in
+    build|BUILD|-b|-B)
+      # validate_versions
+      log info "Executando comando de build..."
+      build_binary "${PLATFORM_ARG}" "${ARCH_ARG}" || exit 1
+      ;;
+    install|INSTALL|-i|-I)
+      log info "Executando comando de instalação..."
+      read -r -p "Deseja baixar o binário pré-compilado? [y/N] (Caso contrário, fará build local): " choice </dev/tty
+      log info "Escolha do usuário: ${choice}"
+      if [[ "$choice" == "y" || "$choice" == "Y" ]]; then
+          log info "Baixando binário pré-compilado..."
+          install_from_release
+      else
+          log info "Realizando build local..."
+          validate_versions
+          build_binary "${PLATFORM_ARG}" "${ARCH_ARG}" || exit 1
+          install_binary
+      fi
+      summary
+      ;;
+    clear|clean|CLEAN|-c|-C)
+      log info "Executando comando de limpeza..."
+      clean_artifacts
+      log success "Clean executado com sucesso."
+      ;;
+    *)
+      log error "Comando inválido: ${arrArgs[0]:-}"
+      echo "Uso: $0 {build|install|clean}"
+      ;;
+  esac
+}
+
+# Função para limpar artefatos de build
+clean_artifacts() {
+    log info "Limpando artefatos de build..."
+    local platforms=("windows" "darwin" "linux")
+    local archs=("amd64" "386" "arm64")
+    for platform in "${platforms[@]}"; do
+        for arch in "${archs[@]}"; do
+            local output_name
+            output_name=$(printf '%s_%s_%s' "${_BINARY}" "${platform}" "${arch}")
+            if [[ "${platform}" != "windows" ]]; then
+                local compress_name="${output_name}.tar.gz"
+            else
+                output_name="${output_name}.exe"
+                local compress_name="${_BINARY}_${platform}_${arch}.zip"
+            fi
+            rm -f "${output_name}" || true
+            rm -f "${compress_name}" || true
+        done
+    done
+    log success "Artefatos de build removidos."
+}
+
+__secure_logic_main() {
+  local _ws_name
+  _ws_name="$(__secure_logic_sourced_name)"
+  local _ws_name_val
+  _ws_name_val=$(eval "echo \${$_ws_name}")
+  if test "${_ws_name_val}" != "true"; then
+    __main "$@"
+    return $?
+  else
+    # If the script is sourced, we export the functions
+    log error "This script is not intended to be sourced."
+    log error "Please run it directly."
+    return 1
+  fi
+}
+
+run_custom_scripts "pre" "$@" || log error "Erro ao executar scripts pré-instalação."
+
+__secure_logic_init_timestamp="$(date +%s)"
+
+# echo "MAKE ARGS: ${ARGS[*]:-}"
+log info "Starting installation script..."
+__secure_logic_main "$@"
+
+__secure_logic_elapsed_time="$(($(date +%s) - __secure_logic_init_timestamp))"
+
+if [[ "${MYNAME_VERBOSE:-false}" == "true" || "${_DEBUG:-false}" == "true" ]]; then
+  log info "Script executed in ${__secure_logic_elapsed_time} seconds."
+fi
+
+run_custom_scripts "post" "$@" || log error "Erro ao executar scripts pós-instalação."
+
+# End of script logic
+
+/// support/install_funcs.sh ///
+#!/usr/bin/env bash
+# lib/install_funcs.sh – Funções para instalação e manipulação de PATH
+
+install_upx() {
+    if ! command -v upx &> /dev/null; then
+        if ! sudo -v &> /dev/null; then
+            log error "Você não tem permissões de superusuário para instalar o empacotador de binários."
+            log warn "Se deseja o empacotamento de binários, instale o UPX manualmente."
+            log warn "Veja: https://upx.github.io/"
+            return 1
+        fi
+        if [[ "$(uname)" == "Darwin" ]]; then
+            brew install upx >/dev/null
+        elif command -v apt-get &> /dev/null; then
+            sudo apt-get install -y upx >/dev/null
+        elif command -v yum &> /dev/null; then
+            sudo yum install -y upx >/dev/null
+        elif command -v dnf &> /dev/null; then
+            sudo dnf install -y upx >/dev/null
+        elif command -v pacman &> /dev/null; then
+            sudo pacman -S --noconfirm upx >/dev/null
+        elif command -v zypper &> /dev/null; then
+            sudo zypper install -y upx >/dev/null
+        elif command -v apk &> /dev/null; then
+            sudo apk add upx >/dev/null
+        elif command -v port &> /dev/null; then
+            sudo port install upx >/dev/null
+        elif command -v snap &> /dev/null; then
+            sudo snap install upx >/dev/null
+        elif command -v flatpak &> /dev/null; then
+            sudo flatpak install flathub org.uptane.upx -y >/dev/null
+        else
+            log warn "Se deseja o empacotamento de binários, instale o UPX manualmente."
+            log warn "Veja: https://upx.github.io/"
+            return 1
+        fi
+    fi
+
+    return 0
+}
+
+detect_shell_rc() {
+    local shell_rc_file
+    local user_shell
+    user_shell=$(basename "$SHELL")
+
+    case "$user_shell" in
+        bash) shell_rc_file="${HOME:-~}/.bashrc" ;;
+        zsh) shell_rc_file="${HOME:-~}/.zshrc" ;;
+        sh) shell_rc_file="${HOME:-~}/.profile" ;;
+        fish) shell_rc_file="${HOME:-~}/.config/fish/config.fish" ;;
+        *)
+            log warn "Shell não suportado; ajuste o PATH manualmente."
+            return 1
+            ;;
+    esac
+    
+    if [ ! -f "$shell_rc_file" ]; then
+        log error "Arquivo de configuração não encontrado: ${shell_rc_file}"
+        return 1
+    fi
+
+    echo "$shell_rc_file"
+
+    return 0
+}
+
+add_to_path() {
+    local target_path="${1:-}"
+
+    local shell_rc_file=""
+
+    local path_expression=""
+
+    path_expression="export PATH=\"${target_path}:\$PATH\""
+
+    shell_rc_file="$(detect_shell_rc)"
+
+
+    if [ -z "$shell_rc_file" ]; then
+        log error "Não foi possível identificar o arquivo de configuração do shell."
+        return 1
+    fi
+    if grep -q "${path_expression}" "$shell_rc_file" 2>/dev/null; then
+        log success "$target_path já está no PATH do $shell_rc_file."
+        return 0
+    fi
+
+    if [[ -z "${target_path}" ]]; then
+        log error "Caminho de destino não fornecido."
+        return 1
+    fi
+
+    if [[ ! -d "${target_path}" ]]; then
+        log error "Caminho de destino não é um diretório válido: $target_path"
+        return 1
+    fi
+
+    if [[ ! -f "${shell_rc_file}" ]]; then
+        log error "Arquivo de configuração não encontrado: ${shell_rc_file}"
+        return 1
+    fi
+
+    # echo "export PATH=${target_path}:\$PATH" >> "$shell_rc_file"
+    printf '%s\n' "${path_expression}" | tee -a "$shell_rc_file" >/dev/null || {
+        log error "Falha ao adicionar $target_path ao PATH em $shell_rc_file."
+        return 1
+    }
+
+    log success "Adicionado $target_path ao PATH em $shell_rc_file."
+    
+    "$SHELL" -c "source ${shell_rc_file}" || {
+        log warn "Falha ao recarregar o shell. Por favor, execute 'source ${shell_rc_file}' manualmente."
+    }
+
+    return 0
+}
+
+install_binary() {
+    local SUFFIX="${_PLATFORM_WITH_ARCH}"
+    local BINARY_TO_INSTALL="${_BINARY}${SUFFIX:+_${SUFFIX}}"
+    log info "Instalando o binário: '${BINARY_TO_INSTALL}' como '$_APP_NAME'"
+
+    if [ "$(id -u)" -ne 0 ]; then
+        log info "Usuário não-root detectado. Instalando em ${_LOCAL_BIN}..."
+        mkdir -p "$_LOCAL_BIN"
+        cp "$BINARY_TO_INSTALL" "$_LOCAL_BIN/$_APP_NAME" || exit 1
+        add_to_path "$_LOCAL_BIN"
+    else
+        log info "Usuário root detectado. Instalando em ${_GLOBAL_BIN}..."
+        cp "$BINARY_TO_INSTALL" "$_GLOBAL_BIN/$_APP_NAME" || exit 1
+        add_to_path "$_GLOBAL_BIN"
+    fi
+}
+
+download_binary() {
+    if ! what_platform; then
+        log error "Falha ao detectar a plataforma."
+        return 1
+    fi
+    if [[ -z "${_PLATFORM}" ]]; then
+        log error "Plataforma não suportada: ${_PLATFORM}"
+        return 1
+    fi
+    local version
+    version=$(curl -s "https://api.github.com/repos/${_OWNER}/${_PROJECT_NAME}/releases/latest" | grep "tag_name" | cut -d '"' -f 4 || echo "latest")
+    if [ -z "$version" ]; then
+        log error "Falha ao determinar a última versão."
+        return 1
+    fi
+
+    local release_url
+    release_url=$(get_release_url)
+    log info "Baixando o binário ${_APP_NAME} para OS=${_PLATFORM}, ARCH=${_ARCH}, Versão=${version}..."
+    log info "URL de Release: ${release_url}"
+
+    local archive_path="${_TEMP_DIR}/${_APP_NAME}.tar.gz"
+    if ! curl -L -o "${archive_path}" "${release_url}"; then
+        log error "Falha ao baixar o binário de: ${release_url}"
+        return 1
+    fi
+    log success "Binário baixado com sucesso."
+
+    log info "Extraindo o binário para: $(dirname "${_BINARY}")"
+    if ! tar -xzf "${archive_path}" -C "$(dirname "${_BINARY}")"; then
+        log error "Falha ao extrair o binário de: ${archive_path}"
+        rm -rf "${_TEMP_DIR}"
+        exit 1
+    fi
+
+    rm -rf "${_TEMP_DIR}"
+    log success "Binário extraído com sucesso."
+
+    if [ ! -f "$_BINARY" ]; then
+        log error "Binário não encontrado após extração: ${_BINARY}"
+        exit 1
+    fi
+    log success "Download e extração de ${_APP_NAME} concluídos!"
+}
+
+install_from_release() {
+    download_binary
+    install_binary
+}
+
+check_path() {
+    log info "Verificando se o diretório de instalação está no PATH..."
+    if ! echo "$PATH" | grep -q "$1"; then
+        log warn "$1 não está no PATH."
+        log warn "Adicione: export PATH=$1:\$PATH"
+    else
+        log success "$1 já está no PATH."
+    fi
+}
+
+export -f install_upx
+export -f detect_shell_rc
+export -f add_to_path
+export -f install_binary
+export -f download_binary
+export -f install_from_release
+export -f check_path
+
+/// support/instructions/go.md ///
+# Golang Craftsmanship Standards
+
+Use Go Modules for dependency management. Keep `go.mod` and `go.sum` clean and minimal. Avoid indirect dependencies when possible.
+
+Organize projects using idiomatic structure: `cmd/`, `cmd/cli/`, `internal/`, `internal/types`, `internal/interfaces`, `api/`, `support/`, `support/instructions`, `tests/`.  
+
+Place the main CLI entrypoint in `cmd/main.go` and the library entrypoint in the root withe package at the same name of project.
+
+Every package must contain a comment describing its purpose before the package declaration in one line. Use `// Package <name> ...` format.
+
+Write **table-driven tests** with the standard `testing` package. For complex assertions, use `testify`. Coverage should be high on business logic, especially for error paths.
+
+Mock dependencies via interfaces — never via `globals` or side effects. Benchmark performance-sensitive functions. Keep tests fast and deterministic.
+
+Naming: `CamelCase` for exported, `camelCase` for internal. Avoid stutter in package names (e.g., `user.User` is wrong).
+
+Functions must be small and cohesive. Return early. Nesting is a code smell. Handle errors explicitly. Don’t ignore them — even temporarily.
+
+Favor **composition over inheritance**. Accept interfaces, return concrete structs. Document behavior at interface boundaries.
+
+Always use `context.Context` for cancellation, timeouts, and tracing. Pass it explicitly — do not store it in structs.
+
+Exported types, functions, and packages MUST include **godoc-compatible comments**. Start with the function/type name. Include usage examples when applicable.
+
+README must be clear, technical and up to date. Include build instructions, feature summary, and example usage. If possible, add architecture diagrams and CLI reference.
+
+Be consistent. Be happy. Be fast. Be safe.
+
+/// support/main.sh ///
+#!/usr/bin/env bash
+
+/// support/platform.sh ///
+#!/usr/bin/env bash
+
+set -euo pipefail
+set -o errtrace
+set -o functrace
+set -o posix
+IFS=$'\n\t'
+
+get_release_url() {
+    local os="${_PLATFORM%%-*}"
+    local format
+    if [[ "$os" == "windows" ]]; then
+      format="zip"
+    else
+      format="tar.gz"
+    fi
+    echo "'https://github.com/${_OWNER}/${_PROJECT_NAME}/releases/download/${_VERSION}/${_PROJECT_NAME}_.${format}'"
+}
+
+what_platform() {
+  local _os
+  _os="$(uname -s)"
+  local _arch
+  _arch="$(uname -m)"
+  local platform=""
+
+  case "${_os}" in
+  *Linux*|*Nix*)
+    _os="linux"
+    case "${_arch}" in
+      "x86_64") _arch="amd64" ;;
+      "armv6") _arch="armv6l" ;;
+      "armv8"|"aarch64") _arch="arm64" ;;
+      *386*) _arch="386" ;;
+    esac
+    platform="linux-${_arch}"
+    ;;
+  *Darwin*)
+    _os="darwin"
+    case "${_arch}" in
+      "x86_64") _arch="amd64" ;;
+      "arm64") _arch="arm64" ;;
+    esac
+    platform="darwin-${_arch}"
+    ;;
+  MINGW*|MSYS*|CYGWIN*|Win*)
+    _os="windows"
+    case "${_arch}" in
+      "x86_64") _arch="amd64" ;;
+      "arm64") _arch="arm64" ;;
+    esac
+    platform="windows-${_arch}"
+    ;;
+  *)
+    log error "Plataforma não suportada: ${_os} ${_arch}"
+    log error "Informe este problema aos mantenedores do projeto."
+    return 1
+    ;;
+  esac
+
+  export _PLATFORM_WITH_ARCH="${platform//-/_}"
+  export _PLATFORM="${_os}"
+  export _ARCH="${_arch}"
+
+  return 0
+}
+
+_get_os_arr_from_args() {
+  local _PLATFORM_ARG=$1
+  if [[ "${_PLATFORM_ARG}" == "all" ]]; then
+    echo "windows darwin linux"
+  else
+    echo "${_PLATFORM_ARG}"
+  fi
+}
+
+_get_arch_arr_from_args() {
+  local _ARCH_ARG=$1
+  if [[ "${_ARCH_ARG}" == "all" ]]; then
+    echo "amd64 386 arm64"
+  else
+    echo "${_ARCH_ARG}"
+  fi
+}
+
+_get_os_from_args() {
+  local arg=$1
+  case "$arg" in
+    all|ALL|a|A|-a|-A) echo "all" ;;
+    win|WIN|windows|WINDOWS|w|W|-w|-W) echo "windows" ;;
+    linux|LINUX|l|L|-l|-L) echo "linux" ;;
+    darwin|DARWIN|macOS|MACOS|m|M|-m|-M) echo "darwin" ;;
+    *)
+      log error "Plataforma inválida: '${arg}'. Opções válidas: windows, linux, darwin, all."
+      exit 1
+      ;;
+  esac
+}
+
+_get_arch_from_args() {
+  local arg=$1
+  case "$arg" in
+    all|ALL|a|A|-a|-A) echo "all" ;;
+    amd64|AMD64|x86_64|X86_64|x64|X64) echo "amd64" ;;
+    arm64|ARM64|aarch64|AARCH64) echo "arm64" ;;
+    386|i386|I386) echo "386" ;;
+    *)
+      log error "Arquitetura inválida: '${arg}'. Opções válidas: amd64, arm64, 386."
+      exit 1
+      ;;
+  esac
+}
+
+export -f _get_os_arr_from_args
+export -f _get_arch_arr_from_args
+export -f _get_os_from_args
+export -f _get_arch_from_args
+export -f get_release_url
+export -f what_platform
+
+what_platform "${@}"
+
+/// support/pos.d/post_build.sh ///
+#!/usr/bin/env bash
+# shellcheck disable=SC2065,SC2015
+
+# set -o nounset  # Treat unset variables as an error
+# set -o errexit  # Exit immediately if a command exits with a non-zero status
+# set -o pipefail # Prevent errors in a pipeline from being masked
+# set -o errtrace # If a command fails, the shell will exit immediately
+# set -o functrace # If a function fails, the shell will exit immediately
+# shopt -s inherit_errexit # Inherit the errexit option in functions
+
+# _ROOT_DIR="$(git rev-parse --show-toplevel)"
+
+# cd "${_ROOT_DIR}" || exit 1
+
+# echo "✅ Processo concluído com sucesso!"
+
+
+## Example of post build script
+
+/// support/pre.d/pre_build.sh ///
+#!/usr/bin/env bash
+# shellcheck disable=SC2065,SC2015
+
+# set -o nounset  # Treat unset variables as an error
+# set -o errexit  # Exit immediately if a command exits with a non-zero status
+# set -o pipefail # Prevent errors in a pipeline from being masked
+# set -o errtrace # If a command fails, the shell will exit immediately
+# set -o functrace # If a function fails, the shell will exit immediately
+# shopt -s inherit_errexit # Inherit the errexit option in functions
+
+# _ROOT_DIR="$(git rev-parse --show-toplevel)"
+
+# cd "${_ROOT_DIR}" || exit 1
+
+# echo "✅ Processo concluído com sucesso!"
+
+
+## Example of pre build script
+
+/// support/utils.sh ///
+#!/usr/bin/env bash
+# lib/utils.sh – Funções utilitárias
+
+set -euo pipefail
+set -o errtrace
+set -o functrace
+set -o posix
+IFS=$'\n\t'
+
+# Códigos de cor para logs
+_SUCCESS="\033[0;32m"
+_WARN="\033[0;33m"
+_ERROR="\033[0;31m"
+_INFO="\033[0;36m"
+_NC="\033[0m"
+
+log() {
+  local type=${1:-info}
+  local message=${2:-}
+  local debug=${3:-${DEBUG:-false}}
+
+  case $type in
+    info|_INFO|-i|-I)
+      if [[ "$debug" == true ]]; then
+        printf '%b[_INFO]%b ℹ️  %s\n' "$_INFO" "$_NC" "$message"
+      fi
+      ;;
+    warn|_WARN|-w|-W)
+      if [[ "$debug" == true ]]; then
+        printf '%b[_WARN]%b ⚠️  %s\n' "$_WARN" "$_NC" "$message"
+      fi
+      ;;
+    error|_ERROR|-e|-E)
+      printf '%b[_ERROR]%b ❌  %s\n' "$_ERROR" "$_NC" "$message"
+      ;;
+    success|_SUCCESS|-s|-S)
+      printf '%b[_SUCCESS]%b ✅  %s\n' "$_SUCCESS" "$_NC" "$message"
+      ;;
+    *)
+      if [[ "$debug" == true ]]; then
+        log "info" "$message" "$debug"
+      fi
+      ;;
+  esac
+}
+
+clear_screen() {
+  printf "\033[H\033[2J"
+}
+
+get_current_shell() {
+  local shell_proc
+  shell_proc=$(cat /proc/$$/comm)
+  case "${0##*/}" in
+    ${shell_proc}*)
+      local shebang
+      shebang=$(head -1 "$0")
+      printf '%s\n' "${shebang##*/}"
+      ;;
+    *)
+      printf '%s\n' "$shell_proc"
+      ;;
+  esac
+}
+
+# Cria um diretório temporário para cache
+_TEMP_DIR="${_TEMP_DIR:-$(mktemp -d)}"
+if [[ -d "${_TEMP_DIR}" ]]; then
+    log info "Diretório temporário criado: ${_TEMP_DIR}"
+else
+    log error "Falha ao criar o diretório temporário."
+fi
+
+clear_script_cache() {
+  trap - EXIT HUP INT QUIT ABRT ALRM TERM
+  if [[ ! -d "${_TEMP_DIR}" ]]; then
+    exit 0
+  fi
+  rm -rf "${_TEMP_DIR}" || true
+  if [[ -d "${_TEMP_DIR}" ]] && sudo -v 2>/dev/null; then
+    sudo rm -rf "${_TEMP_DIR}"
+    if [[ -d "${_TEMP_DIR}" ]]; then
+      printf '%b[_ERROR]%b ❌  %s\n' "$_ERROR" "$_NC" "Falha ao remover o diretório temporário: ${_TEMP_DIR}"
+    else
+      printf '%b[_SUCCESS]%b ✅  %s\n' "$_SUCCESS" "$_NC" "Diretório temporário removido: ${_TEMP_DIR}"
+    fi
+  fi
+  exit 0
+}
+
+set_trap() {
+  local current_shell=""
+  current_shell=$(get_current_shell)
+  case "${current_shell}" in
+    *ksh|*zsh|*bash)
+      declare -a FULL_SCRIPT_ARGS=("$@")
+      if [[ "${FULL_SCRIPT_ARGS[*]}" =~ -d ]]; then
+          set -x
+      fi
+      if [[ "${current_shell}" == "bash" ]]; then
+        set -o errexit
+        set -o pipefail
+        set -o errtrace
+        set -o functrace
+        shopt -s inherit_errexit
+      fi
+      trap 'clear_script_cache' EXIT HUP INT QUIT ABRT ALRM TERM
+      ;;
+  esac
+}
+
+/// support/validate.sh ///
+#!/usr/bin/env bash
+# lib/validate.sh – Validação da versão do Go e dependências
+
+validate_versions() {
+    local REQUIRED_GO_VERSION="${_VERSION_GO:-1.20.0}"
+    local GO_VERSION
+    GO_VERSION=$(go version | awk '{print $3}' | sed 's/go//')
+    if [[ "$(printf '%s\n' "$REQUIRED_GO_VERSION" "$GO_VERSION" | sort -V | head -n1)" != "$REQUIRED_GO_VERSION" ]]; then
+        log error "A versão do Go deve ser >= $REQUIRED_GO_VERSION. Detectado: $GO_VERSION"
+        exit 1
+    fi
+    log success "Versão do Go válida: $GO_VERSION"
+    go mod tidy || return 1
+}
+
+check_dependencies() {
+    for dep in "$@"; do
+        if ! command -v "$dep" > /dev/null; then
+            log error "$dep não está instalado."
+            exit 1
+        else
+            log success "$dep está instalado."
+        fi
+    done
+}
+
+export -f validate_versions
+export -f check_dependencies
+
+/// version/CLI_VERSION ///
+v0.0.1
+
+/// version/semantic.go ///
+// Package version provides functionality to manage and check the version of the GoForge CLI tool.
+// It includes methods to retrieve the current version, check for the latest version,
+package version
+
+import (
+	"os"
+	"path/filepath"
+
+	gl "github.com/rafa-mori/goforge/logger"
+	l "github.com/rafa-mori/logz"
+
+	"github.com/spf13/cobra"
+
+	_ "embed"
+	"encoding/json"
+	"fmt"
+	"io"
+	"net/http"
+	"strconv"
+	"strings"
+	"time"
+)
+
+func init() {
+	if owner := os.Getenv("GITHUB_OWNER"); owner != "" {
+		projectOwner = owner
+	}
+	//moduleName = os.Getenv("GITHUB_REPOSITORY")
+	if moduleName == "" {
+		moduleName, err := os.Executable()
+		if err == nil {
+			moduleName = filepath.Base(moduleName)
+		}
+		for _, ext := range []string{".exe", ".sh", ".bat", ".cmd"} {
+			moduleName = strings.TrimSuffix(moduleName, ext)
+		}
+	}
+
+	if moduleAliasEnv := os.Getenv("MODULE_ALIAS"); moduleAliasEnv != "" {
+		if moduleName == "" {
+			moduleName = moduleAliasEnv
+		}
+		moduleAlias = moduleAliasEnv
+	}
+
+	l.GetLogger(moduleAlias)
+}
+
+var moduleAlias = "GoForge" // Default module alias, can be overridden by environment variable
+var moduleName = "goforge"  // Default module name, can be overridden by environment variable
+
+const currentVersionFallback = "v0.0.1"
+
+//go:embed CLI_VERSION
+var cliVersion string
+var projectOwner = "rafa-mori" // Default project owner, can be overridden by environment variable
+var gitModelURL = "https://github.com/" + projectOwner + "/" + moduleName + ".git"
+
+type Service interface {
+	GetLatestVersion() (string, error)
+	GetCurrentVersion() string
+	IsLatestVersion() (bool, error)
+}
+type ServiceImpl struct {
+	gitModelURL    string
+	latestVersion  string
+	currentVersion string
+}
+type Tag struct {
+	Name string `json:"name"`
+}
+
+func init() {
+	l.GetLogger(moduleAlias)
+
+	if gitModelURL == "" {
+		gitModelURL = "https://github.com/" + projectOwner + "/" + moduleName + ".git"
+	}
+}
+
+func getLatestTag(repoURL string) (string, error) {
+	l.GetLogger(moduleName)
+
+	if repoURL == "" {
+		repoURL = gitModelURL
+	}
+
+	apiURL := fmt.Sprintf("%s/tags", repoURL)
+	resp, err := http.Get(apiURL)
+	if err != nil {
+		return "", err
+	}
+	defer func(Body io.ReadCloser) {
+		_ = Body.Close()
+	}(resp.Body)
+
+	if resp.StatusCode != http.StatusOK {
+		return "", fmt.Errorf("failed to fetch tags: %s", resp.Status)
+	}
+
+	var tags []Tag
+	if err := json.NewDecoder(resp.Body).Decode(&tags); err != nil {
+		return "", err
+	}
+
+	if len(tags) == 0 {
+		return "", fmt.Errorf("no tags found")
+	}
+
+	return tags[0].Name, nil
+}
+
+func (v *ServiceImpl) updateLatestVersion() error {
+	repoURL := strings.TrimSuffix(v.gitModelURL, ".git")
+	tag, err := getLatestTag(repoURL)
+	if err != nil {
+		return err
+	}
+	v.latestVersion = tag
+	return nil
+}
+func (v *ServiceImpl) vrsCompare(v1, v2 []int) (int, error) {
+	if len(v1) != len(v2) {
+		return 0, fmt.Errorf("version length mismatch")
+	}
+
+	for idx, v2S := range v2 {
+		v1S := v1[idx]
+		if v1S > v2S {
+			return 1, nil
+		}
+
+		if v1S < v2S {
+			return -1, nil
+		}
+	}
+	return 0, nil
+}
+func (v *ServiceImpl) versionAtMost(versionAtMostArg, max []int) (bool, error) {
+	if comp, err := v.vrsCompare(versionAtMostArg, max); err != nil {
+		return false, err
+	} else if comp == 1 {
+		return false, nil
+	}
+	return true, nil
+}
+func (v *ServiceImpl) parseVersion(versionToParse string) []int {
+	version := make([]int, 3)
+	for idx, vStr := range strings.Split(versionToParse, ".") {
+		vS, err := strconv.Atoi(vStr)
+		if err != nil {
+			return nil
+		}
+		version[idx] = vS
+	}
+	return version
+}
+
+func (v *ServiceImpl) IsLatestVersion() (bool, error) {
+	if v.latestVersion == "" {
+		if err := v.updateLatestVersion(); err != nil {
+			return false, err
+		}
+	}
+
+	curr := v.parseVersion(v.currentVersion)
+	latest := v.parseVersion(v.latestVersion)
+
+	if curr == nil || latest == nil {
+		return false, fmt.Errorf("error parsing versions")
+	}
+
+	if isLatest, err := v.versionAtMost(curr, latest); err != nil {
+		return false, err
+	} else if isLatest {
+		return true, nil
+	}
+	return false, nil
+}
+func (v *ServiceImpl) GetLatestVersion() (string, error) {
+	if v.latestVersion == "" {
+		if err := v.updateLatestVersion(); err != nil {
+			return "", err
+		}
+	}
+
+	return v.latestVersion, nil
+}
+func (v *ServiceImpl) GetCurrentVersion() string { return v.currentVersion }
+
+func NewVersionService() Service {
+	return &ServiceImpl{
+		gitModelURL:    gitModelURL,
+		currentVersion: currentVersion,
+		latestVersion:  "",
+	}
+}
+
+var (
+	versionCmd = &cobra.Command{
+		Use:   "version",
+		Short: "Print the version number of " + moduleAlias + "(" + moduleName + ")",
+		Long:  "Print the version number of " + moduleAlias + "(" + moduleName + ")",
+		Run: func(cmd *cobra.Command, args []string) {
+			GetVersionInfo()
+		},
+	}
+	subLatestCmd = &cobra.Command{
+		Use:   "latest",
+		Short: "Print the latest version number of " + moduleAlias + "(" + moduleName + ")",
+		Long:  "Print the latest version number of " + moduleAlias + "(" + moduleName + ")",
+		Run: func(cmd *cobra.Command, args []string) {
+			GetLatestVersionInfo()
+		},
+	}
+	subCmdCheck = &cobra.Command{
+		Use:   "check",
+		Short: "Check if the current version is the latest version of " + moduleAlias + "(" + moduleName + ")",
+		Long:  "Check if the current version is the latest version of " + moduleAlias + "(" + moduleName + ")",
+		Run: func(cmd *cobra.Command, args []string) {
+			GetVersionInfoWithLatestAndCheck()
+		},
+	}
+)
+
+//go:embed CLI_VERSION
+var currentVersion string
+
+func GetVersion() string {
+	if currentVersion == "" {
+		return currentVersionFallback
+	}
+	return currentVersion
+}
+
+func GetGitRepositoryModelURL() string {
+	return gitModelURL
+}
+
+func GetVersionInfo() string {
+	gl.Log("info", "Version: "+GetVersion())
+	gl.Log("info", "Git repository: "+GetGitRepositoryModelURL())
+	return fmt.Sprintf("Version: %s\nGit repository: %s", GetVersion(), GetGitRepositoryModelURL())
+}
+
+func GetLatestVersionFromGit() string {
+	netClient := &http.Client{
+		Timeout: time.Second * 10,
+	}
+
+	gitURLWithoutGit := strings.TrimSuffix(gitModelURL, ".git")
+
+	response, err := netClient.Get(gitURLWithoutGit + "/releases/latest")
+	if err != nil {
+		gl.Log("error", "Error fetching latest version: "+err.Error())
+		gl.Log("error", gitURLWithoutGit+"/releases/latest")
+		return err.Error()
+	}
+
+	if response.StatusCode != 200 {
+		gl.Log("error", "Error fetching latest version: "+response.Status)
+		gl.Log("error", "Url: "+gitURLWithoutGit+"/releases/latest")
+		body, _ := io.ReadAll(response.Body)
+		return fmt.Sprintf("Error: %s\nResponse: %s", response.Status, string(body))
+	}
+
+	tag := strings.Split(response.Request.URL.Path, "/")
+
+	return tag[len(tag)-1]
+}
+
+func GetLatestVersionInfo() string {
+	gl.Log("info", "Latest version: "+GetLatestVersionFromGit())
+	return "Latest version: " + GetLatestVersionFromGit()
+}
+
+func GetVersionInfoWithLatestAndCheck() string {
+	if GetVersion() == GetLatestVersionFromGit() {
+		gl.Log("info", "You are using the latest version.")
+		return fmt.Sprintf("You are using the latest version.\n%s\n%s", GetVersionInfo(), GetLatestVersionInfo())
+	} else {
+		gl.Log("warn", "You are using an outdated version.")
+		return fmt.Sprintf("You are using an outdated version.\n%s\n%s", GetVersionInfo(), GetLatestVersionInfo())
+	}
+}
+
+func CliCommand() *cobra.Command {
+	versionCmd.AddCommand(subLatestCmd)
+	versionCmd.AddCommand(subCmdCheck)
+	return versionCmd
+}
+

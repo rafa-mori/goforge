@@ -73,3 +73,7 @@ show_headers() {
     show_banner || return 1
     show_about || return 1
 }
+
+export -f show_about
+export -f show_banner
+export -f show_headers

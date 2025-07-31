@@ -83,7 +83,8 @@ O GoForge é um template/projeto base para qualquer módulo Go moderno. Ele entr
 - **Build multi-plataforma** (Linux, macOS, Windows) sem mexer no código
 - **Compactação UPX** automática para binários otimizados
 - **Publicação automática** no GitHub Releases
-- **Gerenciamento de dependências** unificado
+- **Configuração centralizada** via `info/manifest.json` com acesso embarcado
+- **Artefatos de build organizados** em diretório dedicado `bin/`
 - **Checksum automático** para garantir integridade
 - **CLI customizada e estilizada** (cobra), pronta para ser estendida
 - **Arquitetura flexível**: use como biblioteca ou executável
@@ -96,7 +97,7 @@ Tudo isso sem precisar alterar o código do seu módulo individualmente. O workf
 
 ## 🏗️ Estrutura do Projeto
 
-```plain text
+```text
 ./
 ├── .github/workflows/      # Workflows de CI/CD (release, checksum)
 ├── goforge.go              # Interface GoForge para uso como lib
@@ -106,13 +107,17 @@ Tudo isso sem precisar alterar o código do seu módulo individualmente. O workf
 │   ├── usage.go            # Template de usage customizado
 │   └── wrpr.go             # Estrutura e registro de comandos
 ├── go.mod                  # Dependências Go
+├── info/                   # Metadados da aplicação e manifest
+│   ├── manifest.json       # Configuração central da aplicação
+│   └── application.go      # Interface Go para acesso ao manifest
 ├── logger/                 # Logger global estruturado
 │   └── logger.go           # Logger contextual e colorido
 ├── Makefile                # Entrypoint para build, test, lint, etc.
+├── bin/                    # Diretório de artefatos de build (criado durante build)
 ├── support/                # Scripts auxiliares para build/install
-├── version/                # Versionamento automático
-│   ├── CLI_VERSION         # Preenchido pelo CI/CD
-│   └── semantic.go         # Utilitários de versionamento semântico
+└── version/                # Versionamento automático
+    ├── CLI_VERSION         # Preenchido pelo CI/CD (depreciado)
+    └── semantic.go         # Utilitários de versionamento semântico
 ```
 
 ---
@@ -141,10 +146,12 @@ make install
 make build
 ```
 
+O binário será gerado no diretório `bin/` como `bin/goforge`.
+
 ### 3. Rode a CLI
 
 ```sh
-./goforge --help
+./bin/goforge --help
 ```
 
 ### 4. Adicione comandos customizados
@@ -168,7 +175,23 @@ O logger já inclui contexto (linha, arquivo, função) automaticamente!
 
 ## 🔄 Versionamento automático
 
-O arquivo `version/CLI_VERSION` é preenchido pelo CI/CD a cada release/tag. O comando `goforge version` mostra a versão atual e a última disponível no GitHub.
+O arquivo `info/manifest.json` contém a versão da aplicação e metadados. O sistema de versão se integra com o GitHub para verificar atualizações. O comando `goforge version` mostra a versão atual e a última versão disponível no GitHub.
+
+---
+
+## 📦 Sistema de Distribuição e Build
+
+O GoForge possui um sistema sofisticado de distribuição com configuração centralizada através do `info/manifest.json`. Para informações detalhadas sobre o processo de build, versionamento e integração CI/CD, veja:
+
+**[📋 Documentação de Distribuição e Versionamento](DISTRIBUTION.pt-BR.md)**
+
+Isso cobre:
+
+- Arquitetura baseada em manifest
+- Processo de build multi-plataforma
+- Otimização e organização de binários
+- Automação CI/CD
+- Sistema de gerenciamento de versões
 
 ---
 
@@ -193,8 +216,9 @@ Rafael Mori — [@rafa-mori](https://github.com/rafa-mori)
 ## 🌐 Links
 
 - [Repositório no GitHub](https://github.com/rafa-mori/goforge)
-- [Exemplo de uso do logger](logger/logger.go)
-- [Workflows de CI/CD](.github/workflows/)
+- [Documentação de Distribuição e Versionamento](DISTRIBUTION.pt-BR.md)
+- [Exemplo de uso do logger](../logger/logger.go)
+- [Workflows de CI/CD](../.github/workflows/)
 
 ---
 

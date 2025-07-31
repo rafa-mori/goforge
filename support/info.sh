@@ -20,8 +20,5 @@ show_summary() {
     check_path "$install_dir"
 }
 
-export -f show_about
-export -f show_banner
-export -f show_headers
 export -f show_summary
 

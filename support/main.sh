@@ -73,6 +73,7 @@ _SCRIPT_DIR="$(dirname "${0}")"
 
 __first "$@" >/dev/tty || exit 1
 
+
 __source_script_if_needed() {
   local _check_declare="${1:-}"
   local _script_path="${2:-}"
@@ -204,12 +205,10 @@ __main() {
           log info "Building locally..."
           validate_versions || return 1
           build_binary "${PLATFORM_ARG}" "${ARCH_ARG}" || return 1
-          if [[ -f "${_BINARY}" ]]; then
-            install_binary || {
-              log error "Failed to install the binary." true
-              return 1
-            }
-          fi
+          install_binary || {
+            log error "Failed to install the binary." true
+            return 1
+          }
       else
           log info "Installation cancelled." true
           return 0
@@ -220,6 +219,39 @@ __main() {
       log info "Running clean command..."
       clean_artifacts || return 1
       log success "Clean completed successfully."
+      ;;
+    uninstall|UNINSTALL|-u|-U)
+      log info "Running uninstall command..."
+      uninstall_binary || return 1
+      ;;
+    test|TEST|-t|-T)
+      log info "Running test command..."
+      if ! check_dependencies; then
+        log error "Required dependencies are missing. Please install them and try again." true
+        return 1
+      fi
+      if ! go test ./...; then
+        log error "Tests failed. Please check the output for details." true
+        return 1
+      fi
+      log success "All tests passed successfully."
+      ;;
+    build-docs|BUILD-DOCS|-bdc|-BDC)
+      log info "Running build-docs command..."
+      if ! go build -o "${_ROOT_DIR}/bin/kbxctl-docs" "${_ROOT_DIR}/cmd/docs/main.go"; then
+        log error "Failed to build documentation binary." true
+        return 1
+      fi
+      log success "Documentation binary built successfully."
+      ;;
+    serve-docs|SERVE-DOCS|-sdc|-SDC)
+      if [[ -f "${_ROOT_DIR}/bin/kbxctl-docs" ]]; then
+        log info "Starting documentation server..."
+        "${_ROOT_DIR}/bin/kbxctl-docs" serve
+      else
+        log error "Documentation binary not found: ${_ROOT_DIR}/bin/kbxctl-docs" true
+        return 1
+      fi
       ;;
     *)
       log error "Invalid command: ${arrArgs[0]:-}" true

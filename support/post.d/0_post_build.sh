@@ -9,6 +9,6 @@ set -o functrace # If a function fails, the shell will exit immediately
 shopt -s inherit_errexit # Inherit the errexit option in functions
 
 ## Example of post build script
-_ROOT_DIR="$(git rev-parse --show-toplevel)"
+#_ROOT_DIR="$(git rev-parse --show-toplevel)"
 
-echo "Root directory: ${_ROOT_DIR}" > /dev/tty
+#echo "Root directory: ${_ROOT_DIR}" > /dev/tty

@@ -69,8 +69,12 @@ docs:
 	@./start-docs.sh
 
 build-docs:
-	@go build -o kbxctl-docs cmd/api-docs/main.go
-	$(call log_success, Documentation server built: ./kbxctl-docs)
+	@bash $(INSTALL_SCRIPT) build-docs $(ARGS)
+	@$(shell exit 0)
+
+serve-docs:
+	@bash $(INSTALL_SCRIPT) serve-docs $(ARGS)
+	@$(shell exit 0)
 
 # Build the binary using the install script.
 build:
@@ -84,6 +88,11 @@ build-dev:
 # Install the binary and configure the environment.
 install:
 	@bash $(INSTALL_SCRIPT) install $(ARGS)
+	$(shell exit 0)
+
+# Uninstall the binary and clean up.
+uninstall:
+	@bash $(INSTALL_SCRIPT) uninstall $(ARGS)
 	$(shell exit 0)
 
 # Clean up build artifacts.

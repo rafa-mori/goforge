@@ -76,7 +76,6 @@ add_to_path() {
 
     shell_rc_file="$(detect_shell_rc)"
 
-
     if [ -z "$shell_rc_file" ]; then
         log error "Could not identify the shell configuration file."
         return 1
@@ -117,7 +116,7 @@ add_to_path() {
 }
 install_binary() {
     local SUFFIX="${_PLATFORM_WITH_ARCH}"
-    local BINARY_TO_INSTALL="${_BINARY}${SUFFIX:+_${SUFFIX}}"
+    local BINARY_TO_INSTALL="${_BINARY/\/${_APP_NAME}/\/${_APP_NAME}\/bin}${SUFFIX:+_${SUFFIX}}"
     log info "Installing binary: '${BINARY_TO_INSTALL}' as '$_APP_NAME'"
 
     if [ "$(id -u)" -ne 0 ]; then
@@ -130,6 +129,38 @@ install_binary() {
         cp "$BINARY_TO_INSTALL" "$_GLOBAL_BIN/$_APP_NAME" || exit 1
         add_to_path "$_GLOBAL_BIN"
     fi
+
+    if [[ -n "$shell_rc_file" ]]; then    
+      # shellcheck source=/dev/null
+      . "${shell_rc_file:-$(detect_shell_rc)}" || {
+          log warn "Failed to reload shell configuration. Please run 'source ${shell_rc_file}' manually."
+      }
+    fi
+}
+uninstall_binary() {
+    log info "Uninstalling binary: '$_APP_NAME'"
+
+    if [ "$(id -u)" -ne 0 ]; then
+        log info "Non-root user detected. Uninstalling from ${_LOCAL_BIN}..."
+        rm -f "$_LOCAL_BIN/$_APP_NAME"
+    else
+        log info "Root user detected. Uninstalling from ${_GLOBAL_BIN}..."
+        rm -f "$_GLOBAL_BIN/$_APP_NAME"
+    fi
+
+    log success "Binary '$_APP_NAME' uninstalled successfully."
+
+    local shell_rc_file=""
+    shell_rc_file="$(detect_shell_rc)"
+
+    if [[ -n "$shell_rc_file" ]]; then    
+      # shellcheck source=/dev/null
+      . "${shell_rc_file:-$(detect_shell_rc)}" || {
+          log warn "Failed to reload shell configuration. Please run 'source ${shell_rc_file}' manually."
+      }
+    fi
+
+    return 0
 }
 download_binary() {
     if [[ "${_PRIVATE_REPOSITORY:-}" == "true" ]]; then

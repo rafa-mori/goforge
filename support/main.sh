@@ -73,22 +73,31 @@ _SCRIPT_DIR="$(dirname "${0}")"
 
 __first "$@" >/dev/tty || exit 1
 
+
+__source_script_if_needed() {
+  local _check_declare="${1:-}"
+  local _script_path="${2:-}"
+  # shellcheck disable=SC2065
+  if test -z "$(declare -f "${_check_declare}")" >/dev/null; then
+    # shellcheck source=/dev/null 
+    source "${_script_path}" || {
+      echo "Error: Could not source ${_script_path}. Please ensure it exists." >&2
+      return 1
+    }
+  fi
+  return 0
+}
+
 # Load library files
-_SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-#shellcheck source=/dev/null disable=SC2065
-test -z "${_BANNER:-}" && source "${_SCRIPT_DIR}/config.sh" || true
-#shellcheck source=/dev/null disable=SC2065
-test -z "$(declare -f log)" >/dev/null && source "${_SCRIPT_DIR}/utils.sh" || true
-#shellcheck source=/dev/null disable=SC2065
-test -z "$(declare -f what_platform)" >/dev/null && source "${_SCRIPT_DIR}/platform.sh" || true
-#shellcheck source=/dev/null disable=SC2065
-test -z "$(declare -f check_dependencies)" >/dev/null && source "${_SCRIPT_DIR}/validate.sh" || true
-#shellcheck source=/dev/null disable=SC2065
-test -z "$(declare -f detect_shell_rc)" >/dev/null && source "${_SCRIPT_DIR}/install_funcs.sh" || true
-#shellcheck source=/dev/null disable=SC2065
-test -z "$(declare -f build_binary)" >/dev/null && source "${_SCRIPT_DIR}/build.sh" || true
-#shellcheck source=/dev/null disable=SC2065
-test -z "$(declare -f show_banner)" >/dev/null && source "${_SCRIPT_DIR}/info.sh" || true
+_SCRIPT_DIR="$(cd "$(dirname "${0}")" && pwd)"
+__source_script_if_needed "show_banner" "${_SCRIPT_DIR}/config.sh" || exit 1
+__source_script_if_needed "log" "${_SCRIPT_DIR}/utils.sh" || exit 1
+__source_script_if_needed "what_platform" "${_SCRIPT_DIR}/platform.sh" || exit 1
+__source_script_if_needed "check_dependencies" "${_SCRIPT_DIR}/validate.sh" || exit 1
+__source_script_if_needed "detect_shell_rc" "${_SCRIPT_DIR}/install_funcs.sh" || exit 1
+__source_script_if_needed "build_binary" "${_SCRIPT_DIR}/build.sh" || exit 1
+__source_script_if_needed "show_summary" "${_SCRIPT_DIR}/info.sh" || exit 1
+__source_script_if_needed "apply_manifest" "${_SCRIPT_DIR}/apply_manifest.sh" || exit 1
 
 # Initialize traps
 set_trap "$@"
@@ -196,22 +205,53 @@ __main() {
           log info "Building locally..."
           validate_versions || return 1
           build_binary "${PLATFORM_ARG}" "${ARCH_ARG}" || return 1
-          if [[ -f "${_BINARY}" ]]; then
-            install_binary || {
-              log error "Failed to install the binary." true
-              return 1
-            }
-          fi
+          install_binary || {
+            log error "Failed to install the binary." true
+            return 1
+          }
       else
           log info "Installation cancelled." true
           return 0
       fi
-      summary "${arrArgs[@]}" || return 1
+      show_summary "${arrArgs[@]}" || return 1
       ;;
     clear|clean|CLEAN|-c|-C)
       log info "Running clean command..."
       clean_artifacts || return 1
       log success "Clean completed successfully."
+      ;;
+    uninstall|UNINSTALL|-u|-U)
+      log info "Running uninstall command..."
+      uninstall_binary || return 1
+      ;;
+    test|TEST|-t|-T)
+      log info "Running test command..."
+      if ! check_dependencies; then
+        log error "Required dependencies are missing. Please install them and try again." true
+        return 1
+      fi
+      if ! go test ./...; then
+        log error "Tests failed. Please check the output for details." true
+        return 1
+      fi
+      log success "All tests passed successfully."
+      ;;
+    build-docs|BUILD-DOCS|-bdc|-BDC)
+      log info "Running build-docs command..."
+      if ! go build -o "${_ROOT_DIR}/bin/kbxctl-docs" "${_ROOT_DIR}/cmd/docs/main.go"; then
+        log error "Failed to build documentation binary." true
+        return 1
+      fi
+      log success "Documentation binary built successfully."
+      ;;
+    serve-docs|SERVE-DOCS|-sdc|-SDC)
+      if [[ -f "${_ROOT_DIR}/bin/kbxctl-docs" ]]; then
+        log info "Starting documentation server..."
+        "${_ROOT_DIR}/bin/kbxctl-docs" serve
+      else
+        log error "Documentation binary not found: ${_ROOT_DIR}/bin/kbxctl-docs" true
+        return 1
+      fi
       ;;
     *)
       log error "Invalid command: ${arrArgs[0]:-}" true

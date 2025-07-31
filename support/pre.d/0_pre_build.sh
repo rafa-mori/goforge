@@ -10,4 +10,4 @@ shopt -s inherit_errexit # Inherit the errexit option in functions
 
 IFS=$'\n\t'
 
-echo "✅ Executing pre-build example script..."
+# echo "✅ Executing pre-build example script..."

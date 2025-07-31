@@ -60,3 +60,20 @@ _BUILD_PATH="$(dirname "$_CMD_PATH")"
 _BINARY="$_BUILD_PATH/$_APP_NAME"
 _LOCAL_BIN="${HOME:-"~"}/.local/bin"
 _GLOBAL_BIN="/usr/local/bin"
+
+show_about() {
+    printf '%s\n\n' "${_ABOUT:-}"
+}
+
+show_banner() {
+    printf '%s\n\n' "${_BANNER:-}"
+}
+
+show_headers() {
+    show_banner || return 1
+    show_about || return 1
+}
+
+export -f show_about
+export -f show_banner
+export -f show_headers

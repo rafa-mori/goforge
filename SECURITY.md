@@ -23,6 +23,7 @@ If you discover a security vulnerability in GoForge:
   - Or email: [maintainer@example.com] (replace this with your actual security contact email)
 
 Include as much detail as possible, such as:
+
 - A description of the vulnerability.
 - Steps to reproduce or proof-of-concept.
 - The impact, if known.

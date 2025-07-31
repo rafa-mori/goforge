@@ -30,7 +30,7 @@ type GoForge struct {
 - **`Usage()`**: Command usage pattern
 - **`Examples()`**: List of usage examples
 - **`Active()`**: Always returns `true` (active module)
-- **`Module()`**: Returns "article" as module name
+- **`Module()`**: Returns "goforge" as module name
 
 ### Execution Methods
 
@@ -96,7 +96,7 @@ func RegX() *GoForge
 
 ## Notes
 
-- Module name is hardcoded as "article"
+- Module name is hardcoded as "goforge"
 - Support for configuration via environment variables
 - Integration with logging system for debugging
 - Automatic configuration of commands and subcommands
@@ -122,7 +122,7 @@ if err := goforge.Execute(); err != nil {
 ## Command Structure
 
 ```text
-article
+goforge
 ├── [service commands from cc.ServiceCmdList()]
 └── version (from vs.CliCommand())
 ```

@@ -25,18 +25,18 @@ func (m *GoForge) LongDescription() string {
 	return `GoForge: A minimalistic backend service with Go.`
 }
 func (m *GoForge) Usage() string {
-	return "article [command] [args]"
+	return "goforge [command] [args]"
 }
 func (m *GoForge) Examples() []string {
-	return []string{"article some-command",
-		"article another-command --option value",
-		"article yet-another-command --flag"}
+	return []string{"goforge some-command",
+		"goforge another-command --option value",
+		"goforge yet-another-command --flag"}
 }
 func (m *GoForge) Active() bool {
 	return true
 }
 func (m *GoForge) Module() string {
-	return "article"
+	return "goforge"
 }
 func (m *GoForge) Execute() error {
 	return m.Command().Execute()

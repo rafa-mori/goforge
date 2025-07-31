@@ -38,10 +38,10 @@ cd goforge
 Make sure you have Go installed:
 You can install Go using one of the following methods:
 
-- [A super easy way to install Go](https://github.com/rafa-mori/go-installer)
+- [A super easy way to install Go](https://github.com/rafa-mori/gosetup)
 
   ```shell
-    curl -sSfL 'https://raw.githubusercontent.com/faelmori/go-installer/refs/heads/main/go.sh' | bash
+    curl -sSfL 'https://raw.githubusercontent.com/rafa-mori/gosetup/refs/heads/main/go.sh' | bash
   ```
 
 - [Convencional way to download Go](https://go.dev/dl/)

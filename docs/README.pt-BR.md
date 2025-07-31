@@ -3,7 +3,7 @@
 [![Build](https://github.com/rafa-mori/goforge/actions/workflows/release.yml/badge.svg)](https://github.com/rafa-mori/goforge/actions/workflows/release.yml)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 [![Go Version](https://img.shields.io/badge/go-%3E=1.20-blue)](go.mod)
-[![Releases](https://img.shields.io/github/v/release/faelmori/goforge?include_prereleases)](https://github.com/rafa-mori/goforge/releases)
+[![Releases](https://img.shields.io/github/v/release/rafa-mori/goforge?include_prereleases)](https://github.com/rafa-mori/goforge/releases)
 
 Se você já cansou de builds manuais, deploys complicados, versionamento confuso e quer uma CLI estilosa, fácil de estender e pronta para produção, o **GoForge** é pra você!
 
@@ -99,7 +99,7 @@ Tudo isso sem precisar alterar o código do seu módulo individualmente. O workf
 ```plain text
 ./
 ├── .github/workflows/      # Workflows de CI/CD (release, checksum)
-├── article.go              # Interface GoForge para uso como lib
+├── goforge.go              # Interface GoForge para uso como lib
 ├── cmd/                    # Entrypoint e comandos da CLI
 │   ├── cli/                # Utilitários e comandos de exemplo
 │   ├── main.go             # Main da aplicação CLI
@@ -186,7 +186,7 @@ MIT. Veja o arquivo LICENSE.
 
 ## 👤 Autor
 
-Rafael Mori — [@faelmori](https://github.com/rafa-mori)
+Rafael Mori — [@rafa-mori](https://github.com/rafa-mori)
 
 ---
 

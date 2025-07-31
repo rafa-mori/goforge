@@ -2,6 +2,8 @@ name: kubex_go_release
 
 on:
   push:
+    branches:
+      - main
     tags:
       - "v*.*.*"  # Só será executado com push de tag: git push origin vX.Y.Z
   workflow_dispatch:
@@ -36,7 +38,7 @@ jobs:
       - name: Install Go
         run: |
           export NON_INTERACTIVE=true
-          bash -c "$(curl -sSfL 'https://raw.githubusercontent.com/faelmori/gosetup/refs/heads/main/go.sh')" -s --version "$(grep '^go ' go.mod | awk '{print $2}')"
+          bash -c "$(curl -sSfL 'https://raw.githubusercontent.com/rafa-mori/gosetup/refs/heads/main/go.sh')" -s --version "$(grep '^go ' go.mod | awk '{print $2}')"
 
       - name: Verify Go Installation
         run: go version
@@ -100,6 +102,7 @@ jobs:
       - name: Upload Release Asset
         uses: actions/upload-release-asset@v1
         env:
+          BIN_NAME: ${{ env.BIN_NAME }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           upload_url: ${{ steps.create_release.outputs.upload_url }}

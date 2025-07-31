@@ -6,6 +6,16 @@
 *.dylib
 *.test
 *.out
+*.tar.gz
+*.upx
+
+# Compiled object files
+*.o
+*.a
+*.so
+*.dylib
+
+/bin/
 
 # Output of the go coverage tool
 *.coverprofile
@@ -35,9 +45,9 @@ __pycache__/
 *.pyc
 
 # Node modules (if using JS tooling)
+*/node_modules/
 node_modules/
 .venv/
-venv/
-bkp/
+*/.venv/
 *_linux_amd64
-*_linux_amd64.*
+*_linux_amd64.tar.gz

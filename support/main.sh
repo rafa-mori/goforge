@@ -73,22 +73,30 @@ _SCRIPT_DIR="$(dirname "${0}")"
 
 __first "$@" >/dev/tty || exit 1
 
+__source_script_if_needed() {
+  local _check_declare="${1:-}"
+  local _script_path="${2:-}"
+  # shellcheck disable=SC2065
+  if test -z "$(declare -f "${_check_declare}")" >/dev/null; then
+    # shellcheck source=/dev/null 
+    source "${_script_path}" || {
+      echo "Error: Could not source ${_script_path}. Please ensure it exists." >&2
+      return 1
+    }
+  fi
+  return 0
+}
+
 # Load library files
-_SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-#shellcheck source=/dev/null disable=SC2065
-test -z "${_BANNER:-}" && source "${_SCRIPT_DIR}/config.sh" || true
-#shellcheck source=/dev/null disable=SC2065
-test -z "$(declare -f log)" >/dev/null && source "${_SCRIPT_DIR}/utils.sh" || true
-#shellcheck source=/dev/null disable=SC2065
-test -z "$(declare -f what_platform)" >/dev/null && source "${_SCRIPT_DIR}/platform.sh" || true
-#shellcheck source=/dev/null disable=SC2065
-test -z "$(declare -f check_dependencies)" >/dev/null && source "${_SCRIPT_DIR}/validate.sh" || true
-#shellcheck source=/dev/null disable=SC2065
-test -z "$(declare -f detect_shell_rc)" >/dev/null && source "${_SCRIPT_DIR}/install_funcs.sh" || true
-#shellcheck source=/dev/null disable=SC2065
-test -z "$(declare -f build_binary)" >/dev/null && source "${_SCRIPT_DIR}/build.sh" || true
-#shellcheck source=/dev/null disable=SC2065
-test -z "$(declare -f show_banner)" >/dev/null && source "${_SCRIPT_DIR}/info.sh" || true
+_SCRIPT_DIR="$(cd "$(dirname "${0}")" && pwd)"
+__source_script_if_needed "show_banner" "${_SCRIPT_DIR}/config.sh" || exit 1
+__source_script_if_needed "log" "${_SCRIPT_DIR}/utils.sh" || exit 1
+__source_script_if_needed "what_platform" "${_SCRIPT_DIR}/platform.sh" || exit 1
+__source_script_if_needed "check_dependencies" "${_SCRIPT_DIR}/validate.sh" || exit 1
+__source_script_if_needed "detect_shell_rc" "${_SCRIPT_DIR}/install_funcs.sh" || exit 1
+__source_script_if_needed "build_binary" "${_SCRIPT_DIR}/build.sh" || exit 1
+__source_script_if_needed "show_summary" "${_SCRIPT_DIR}/info.sh" || exit 1
+__source_script_if_needed "apply_manifest" "${_SCRIPT_DIR}/apply_manifest.sh" || exit 1
 
 # Initialize traps
 set_trap "$@"
@@ -206,7 +214,7 @@ __main() {
           log info "Installation cancelled." true
           return 0
       fi
-      summary "${arrArgs[@]}" || return 1
+      show_summary "${arrArgs[@]}" || return 1
       ;;
     clear|clean|CLEAN|-c|-C)
       log info "Running clean command..."

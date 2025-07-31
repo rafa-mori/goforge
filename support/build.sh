@@ -151,7 +151,8 @@ compress_binary() {
       if [[ "$platform_pos" != "windows" ]]; then
         OUTPUT_NAME="${OUTPUT_NAME}.tar.gz"
         _CURR_PATH="$(pwd)"
-        _BINARY_PATH="$(dirname "${BINARY_NAME:-\.\/}")"
+        _BINARY_PATH="${_ROOT_DIR}/bin"
+
         cd "${_BINARY_PATH}" || true # Just to avoid tar warning about relative paths
         if tar -czf "./$(basename "${OUTPUT_NAME}")" "./$(basename "${BINARY_NAME}")"; then
           compress_cmd_exec="true"

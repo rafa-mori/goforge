@@ -14,7 +14,7 @@ show_headers() {
     show_about || return 1
 }
 
-show_summary() {
+summary() {
     local install_dir="$_BINARY"
     local _cmd_executed=
     check_path "$install_dir"
@@ -23,5 +23,5 @@ show_summary() {
 export -f show_about
 export -f show_banner
 export -f show_headers
-export -f show_summary
+export -f summary
 

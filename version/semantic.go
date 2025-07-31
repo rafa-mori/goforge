@@ -385,8 +385,8 @@ func GetGitRepositoryModelURL() string {
 }
 func GetVersionInfo() string {
 	gl.Log("info", "Version: "+GetVersion())
-	gl.Log("info", "Git repository: "+GetGitModelUrl())
-	return fmt.Sprintf("Version: %s\nGit repository: %s", GetVersion(), GetGitModelUrl())
+	gl.Log("info", "Git repository: "+GetGitRepositoryModelURL())
+	return fmt.Sprintf("Version: %s\nGit repository: %s", GetVersion(), GetGitRepositoryModelURL())
 }
 func GetLatestVersionFromGit() string {
 	if info.IsPrivate() {
@@ -404,16 +404,16 @@ func GetLatestVersionFromGit() string {
 		return "No repository URL set in the manifest."
 	}
 
-	response, err := netClient.Get(gitUrlWithoutGit + "/releases/latest")
+	response, err := netClient.Get(gitURLWithoutGit + "/releases/latest")
 	if err != nil {
 		gl.Log("error", "Error fetching latest version: "+err.Error())
-		gl.Log("error", gitUrlWithoutGit+"/releases/latest")
+		gl.Log("error", gitURLWithoutGit+"/releases/latest")
 		return err.Error()
 	}
 
 	if response.StatusCode != 200 {
 		gl.Log("error", "Error fetching latest version: "+response.Status)
-		gl.Log("error", "Url: "+gitUrlWithoutGit+"/releases/latest")
+		gl.Log("error", "Url: "+gitURLWithoutGit+"/releases/latest")
 		body, _ := io.ReadAll(response.Body)
 		return fmt.Sprintf("Error: %s\nResponse: %s", response.Status, string(body))
 	}
